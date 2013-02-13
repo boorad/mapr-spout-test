@@ -1,0 +1,16 @@
+.classpath
+.project
+.settings
+
+.idea
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+target/*
+log/*
+data/*
+conf/*.properties
