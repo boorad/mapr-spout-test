@@ -53,14 +53,21 @@ g.Chart = function(){
         charge          : null,
         changeTickValues: [-0.25, -0.15, -0.05, 0.05, 0.15, 0.25],
         categorizeChange: function(c){
-            if (isNaN(c)) { return 0;
-                          } else if ( c < -0.25) { return -3;
-                                                 } else if ( c < -0.05){ return -2;
-                                                                       } else if ( c < -0.001){ return -1;
-                                                                                              } else if ( c <= 0.001){ return 0;
-                                                                                                                     } else if ( c <= 0.05){ return 1;
-                                                                                                                                           } else if ( c <= 0.25){ return 2;
-                                                                                                                                                                 } else { return 3; }
+            if (isNaN(c)) {
+                return 0;
+            } else if ( c < -0.25) {
+                return -3;
+            } else if ( c < -0.05){
+                return -2;
+            } else if ( c < -0.001){
+                return -1;
+            } else if ( c <= 0.05){
+                return 1;
+            } else if ( c <= 0.25){
+                return 2;
+            } else {
+                return 3;
+            }
         },
         fillColor       : d3.scale.ordinal().domain([-3,-2,-1,0,1,2,3]).range(["#d84b2a", "#ee9586","#e4b7b2","#AAA","#beccae", "#9caf84", "#7aa25c"]),
         strokeColor     : d3.scale.ordinal().domain([-3,-2,-1,0,1,2,3]).range(["#c72d0a", "#e67761","#d9a097","#999","#a7bb8f", "#7e965d", "#5a8731"]),
@@ -133,6 +140,11 @@ g.Chart = function(){
             //    .domain(this.categoriesList)
             //    .rangePoints([0,1]);
 
+            var svg = d3.select("#chart").selectAll("svg").data([0]);
+            svg.enter().append("svg")
+                .attr("width", this.width);
+            this.svg = svg;
+
             this.getData();
 
         },
@@ -148,8 +160,8 @@ g.Chart = function(){
                 if( firstp ) {
                     that.start();
                     that.totalLayout();
-                } else {
-                    that.force.start();
+//                } else {
+//                    that.force.start();
                 }
                 that.dev(2);
             });
@@ -173,50 +185,69 @@ g.Chart = function(){
 //                    discretion: n['discretion'],
                     isNegative: (n[this.currentYearDataColumn] < 0),
 //                    positions: n.positions,
-                    x:Math.random() * 1000,
-                    y:Math.random() * 1000
+//                    x:Math.random() * 1000,
+//                    y:Math.random() * 1000
                 }
+
                 if (n.positions.total) {
                     out.x = n.positions.total.x +
                         (n.positions.total.x - (that.width / 2)) * 0.5;
                     out.y = n.positions.total.y +
                         (n.positions.total.y - (150)) * 0.5;
                 };
-                if ((n[this.currentYearDataColumn] > 0) !==
+/*                if ((n[this.currentYearDataColumn] > 0) !==
                     (n[this.previousYearDataColumn] > 0)) {
                     out.change = "N.A.";
                     out.changeCategory = 0;
                 };
-
+*/
                 this.nodes[i] = out;
             };
+
+        },
+
+        // for dev only
+        dev : function(wait) {
+            var that = this;
+            console.log(g.c.nodes[0]);
+            setTimeout(function() {
+                that.nodes[0].value = 1075650000;
+                that.nodes[0].radius = that.radiusScale(that.nodes[0].value);
+                var circle = that.svg.selectAll("circle")
+                    .data(that.nodes, ƒ('id'))
+                circle.transition(200).call(that.circleAttrs);
+                that.totalLayout();
+                console.log(g.c.nodes[0]);
+            }, wait * 1000);
 
         },
 
         render : function() {
             var that = this;
 
-            var svg = d3.select("#chart").selectAll("svg").data([0]);
-            svg.enter().append("svg")
-                .attr("width", this.width);
-
-            var circle = svg.selectAll("circle").data(that.nodes, ƒ('id'));
+            var circle = this.svg.selectAll("circle").data(that.nodes, ƒ('id'));
 
             circle.enter().append("circle")
                 .style("fill", function(d) { return that.getFillColor(d); } )
                 .style("stroke-width", 1)
-//                .attr('id',function(d) { return 'g-circle'+d.id })
-                .style("stroke", function(d){ return that.getStrokeColor(d); });
+                .style("stroke", function(d){ return that.getStrokeColor(d); })
+                .call(that.circleAttrs);
 
-            circle.transition().duration(1000)
-                .attr("r", function(d){return that.radiusScale(d.value)});
+//            circle.transition().duration(1000)
+//                .attr("r", function(d){return d.radius});
 
-            circle.exit().transition().duration(300)
-                .attr('opacity',0)
-                .remove();
+            circle.exit().transition().duration(300).remove();
+            circle.call(that.circleAttrs);
 
-            this.svg = svg;
             this.circle = circle;
+
+        },
+
+        circleAttrs : function(circles) {
+            circles
+//                .attr('id',function(d) { return 'g-circle'+d.id })
+                .attr("r", ƒ('radius'));
+        },
 
 /*  used to be on enter()
                 .on("mouseover",function(d,i) {
@@ -252,7 +283,6 @@ g.Chart = function(){
                     d3.select("#g-tooltip").style('display','none')});
 */
 
-        },
 
         //
         //
@@ -539,18 +569,6 @@ g.Chart = function(){
                         || y2 < ny1;
                 });
             };
-
-        },
-
-        // for dev only
-        dev : function(wait) {
-            var that = this;
-            console.log(g.c.nodes[0]);
-            setTimeout(function() {
-                g.c.nodes[0].value = 1075650000;
-                g.c.nodes[0].radius = that.radiusScale(g.c.nodes[0].value);
-                console.log(g.c.nodes[0]);
-            }, wait * 1000);
 
         }
 
