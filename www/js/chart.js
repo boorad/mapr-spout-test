@@ -17,14 +17,14 @@ g.Chart = function(){
         url : "data/tweets.json",
         $j : jQuery,
         //defaults
-        width           : 970,
+        width           : 550,
         height          : 850,
         groupPadding    : 10,
-        totalValue      : 744,
+        totalValue      : 0,
 
 
         //will be calculated later
-        boundingRadius  : null,
+//        boundingRadius  : null,
         maxRadius       : null,
         centerX         : null,
         centerY         : null,
@@ -65,10 +65,8 @@ g.Chart = function(){
                 return 3;
             }
         },
-        fillColor       : d3.scale.ordinal().domain([-3,-2,-1,0,1,2,3])
-            .range(["#d84b2a", "#ee9586","#e4b7b2","#AAA","#beccae", "#9caf84", "#7aa25c"]),
-        strokeColor     : d3.scale.ordinal().domain([-3,-2,-1,0,1,2,3])
-            .range(["#c72d0a", "#e67761","#d9a097","#999","#a7bb8f", "#7e965d", "#5a8731"]),
+        fillColor       : "#fff",
+        strokeColor     : "#666",
         getFillColor    : null,
         getStrokeColor  : null,
         pFormat         : d3.format("+.1%"),
@@ -80,7 +78,7 @@ g.Chart = function(){
         bigFormat       : function(n){return g.formatNumber(n*1000)},
         nameFormat      : function(n){return n},
 
-        rScale          : d3.scale.pow().exponent(0.5).domain([0,this.totalValue]).range([1,90]),
+        rScale          : null,
         radiusScale     : null,
         changeScale     : d3.scale.linear().domain([-0.28,0.28]).range([620,180]).clamp(true),
         sizeScale       : d3.scale.linear().domain([0,110]).range([0,1]),
@@ -109,11 +107,7 @@ g.Chart = function(){
 
             }
 
-            this.radiusScale = function(n){ return that.rScale(Math.abs(n)); };
             this.getStrokeColor = function(d){
-                // if (d.isNegative) {
-                //   return "#333"
-                // }
                 return that.strokeColor(d.changeCategory);
             };
             this.getFillColor = function(d){
@@ -123,14 +117,8 @@ g.Chart = function(){
                 return that.fillColor(d.changeCategory);
             };
 
-            this.boundingRadius = this.radiusScale(this.totalValue);
             this.centerX = this.width / 2;
             this.centerY = 300;
-
-            //
-            //this.groupScale = d3.scale.ordinal()
-            //    .domain(this.categoriesList)
-            //    .rangePoints([0,1]);
 
             var svg = d3.select("#chart").selectAll("svg").data([0]);
             svg.enter().append("svg")
@@ -161,25 +149,29 @@ g.Chart = function(){
             var that = this;
             that.totalValue = 0;
 
+            // get totals first - double traversal, sigh.
+            for (var i=0; i < this.data.length; i++) {
+                var n = this.data[i];
+                that.totalValue += n[this.currentYearDataColumn];
+            }
+            that.rScale = d3.scale.pow().exponent(0.5)
+                .domain([0,that.totalValue/6]).range([1,90]);
+            that.radiusScale = function(n){ return that.rScale(Math.abs(n)); };
+
             // Builds the nodes data array from the original data
             for (var i=0; i < this.data.length; i++) {
                 var n = this.data[i];
                 var out = {
                     id: i,
                     radius: this.radiusScale(n[this.currentYearDataColumn]),
-//                    changeCategory: this.categorizeChange(n['change']),
                     value: n[this.currentYearDataColumn],
                     name: n['word'],
                     isNegative: (n[this.currentYearDataColumn] < 0),
                 }
 
                 that.nodes[i] = out;
-                that.totalValue += out.value;
             };
 
-            that.rScale = d3.scale.pow().exponent(0.5)
-                .domain([0,that.totalValue]).range([1,90]);
-            that.boundingRadius = that.radiusScale(that.totalValue);
 
         },
 
@@ -205,28 +197,10 @@ g.Chart = function(){
             var circle = this.svg.selectAll("circle").data(that.nodes, ƒ('id'));
 
             circle.enter().append("circle")
-                .style("fill", function(d) { return that.getFillColor(d); } )
+                .style("fill", that.fillColor)
                 .style("stroke-width", 1)
-                .style("stroke", function(d){ return that.getStrokeColor(d); })
-                .call(that.circleAttrs);
-
-//            circle.transition().duration(1000)
-//                .attr("r", function(d){return d.radius});
-
-            circle.exit().transition().duration(300).remove();
-            circle.call(that.circleAttrs);
-
-            this.circle = circle;
-
-        },
-
-        circleAttrs : function(circles) {
-            circles
-//                .attr('id',function(d) { return 'g-circle'+d.id })
-                .attr("r", ƒ('radius'));
-        },
-
-/*  used to be on enter()
+                .style("stroke", that.strokeColor)
+                .call(that.circleAttrs)
                 .on("mouseover",function(d,i) {
                     var el = d3.select(this)
                     var xpos = Number(el.attr('cx'))
@@ -239,7 +213,7 @@ g.Chart = function(){
                         .classed('g-minus', (d.changeCategory < 0));
                     d3.select("#g-tooltip .g-name").
                         html(that.nameFormat(d.name))
-
+/*
                     d3.select("#g-tooltip .g-discretion")
                         .text(that.discretionFormat(d.discretion))
                     d3.select("#g-tooltip .g-department").text(d.group)
@@ -250,15 +224,26 @@ g.Chart = function(){
                     if (d.change == "N.A.") {
                         pctchngout = "N.A."
                     };
-                    d3.select("#g-tooltip .g-change").html(pctchngout) })
+                    d3.select("#g-tooltip .g-change").html(pctchngout)
+*/
+                })
                 .on("mouseout",function(d,i) {
                     d3.select(this)
                         .style("stroke-width",1)
-                        .style("stroke", function(d){
-                            return that.getStrokeColor(d);
-                        })
+                        .style("stroke", that.strokeColor)
                     d3.select("#g-tooltip").style('display','none')});
-*/
+
+            circle.exit().transition().duration(300).remove();
+            circle.call(that.circleAttrs);
+
+            this.circle = circle;
+
+        },
+
+        circleAttrs : function(circles) {
+            circles
+                .attr("r", ƒ('radius'));
+        },
 
 
         //
@@ -373,127 +358,6 @@ g.Chart = function(){
             };
         },
 
-
-
-        //
-        //
-        //
-        mandatorySort: function(alpha) {
-            var that = this;
-            return function(d){
-                var targetY = that.centerY;
-                var targetX = 0;
-
-                if (d.isNegative) {
-                    if (d.changeCategory > 0) {
-                        d.x = - 200
-                    } else {
-                        d.x =  1100
-                    }
-                    return;
-                }
-
-
-                if (d.discretion === that.DISCRETIONARY) {
-                    targetX = 550
-                } else if ((d.discretion === that.MANDATORY)||(d.discretion === that.NET_INTEREST)) {
-                    targetX = 400
-                } else {
-                    targetX = 900
-                };
-
-
-
-
-                d.y = d.y + (targetY - d.y) * (that.defaultGravity) * alpha * 1.1
-                d.x = d.x + (targetX - d.x) * (that.defaultGravity) * alpha * 1.1
-            };
-        },
-
-
-        //
-        //
-        //
-        discretionarySort: function(alpha) {
-            var that = this;
-            return function(d){
-                var targetY = that.height / 2;
-                var targetX = 0;
-
-                if (d.isNegative) {
-                    if (d.changeCategory > 0) {
-                        d.x = - 200
-                    } else {
-                        d.x =  1100
-                    }
-                    return;
-                }
-
-
-                if (d.discretion === "Discretionary") {
-                    targetY = that.changeScale(d.change);
-                    targetX = 100 + that.groupScale(d.group)*(that.width - 120);
-                    if (isNaN(targetY)) {targetY = that.centerY};
-                    if (targetY > (that.height-80)) {targetY = that.height-80};
-                    if (targetY < 80) {targetY = 80};
-
-                } else if ((d.discretion === "Mandatory")||(d.discretion === "Net interest")) {
-                    targetX = -300 + Math.random()* 100;
-                    targetY = d.y;
-                } else {
-                    targetX = 0
-                };
-
-                d.y = d.y + (targetY - d.y) * Math.sin(Math.PI * (1 - alpha*10)) * 0.2
-                d.x = d.x + (targetX - d.x) * Math.sin(Math.PI * (1 - alpha*10)) * 0.1
-            };
-        },
-
-
-        //
-        //
-        //
-        departmentSort: function(alpha){
-            var that = this;
-            return function(d){
-                var targetY = 0,
-                targetX = 0;
-
-                if (that.categoryPositionLookup[d.group]) {
-                    targetY = that.categoryPositionLookup[d.group].y;
-                    targetX = that.categoryPositionLookup[d.group].x;
-                } else {
-                };
-
-
-                var r =  Math.max(5, d.radius)
-                d.y = d.y + (targetY - d.y) * (that.defaultGravity) * alpha * 0.5 * r
-                d.x = d.x + (targetX - d.x) * (that.defaultGravity) * alpha * 0.5 * r
-
-            };
-        },
-
-
-
-
-        //
-        //
-        //
-        staticDepartment: function(alpha) {
-            var that = this;
-            return function(d){
-                var targetY = 0;
-                var targetX = 0;
-
-                if (d.positions.department) {
-                    targetX = d.positions.department.x;
-                    targetY = d.positions.department.y;
-                };
-
-                d.y += (targetY - d.y) * Math.sin(Math.PI * (1 - alpha*10)) * 0.6
-                d.x += (targetX - d.x) * Math.sin(Math.PI * (1 - alpha*10)) * 0.4
-            };
-        },
 
         //
         //

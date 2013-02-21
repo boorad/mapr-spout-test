@@ -5,8 +5,8 @@
     width: 960px;
 }
 
-#chart .view svg {
-
+#chart {
+    background-color: #00bfff;
 }
 
 /*
