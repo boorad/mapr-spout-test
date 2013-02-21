@@ -14,18 +14,14 @@ var g = g || {};
 
 g.Chart = function(){
     return {
-        url : "data/data.json",
+        url : "data/tweets.json",
         $j : jQuery,
         //defaults
         width           : 970,
         height          : 850,
         groupPadding    : 10,
-        totalValue      : 3700000000,
-        deficitValue    : 901000000,
-        // CONST
-        MANDATORY       : "Mandatory",
-        DISCRETIONARY   : "Discretionary",
-        NET_INTEREST    : "Net interest",
+        totalValue      : 744,
+
 
         //will be calculated later
         boundingRadius  : null,
@@ -69,8 +65,10 @@ g.Chart = function(){
                 return 3;
             }
         },
-        fillColor       : d3.scale.ordinal().domain([-3,-2,-1,0,1,2,3]).range(["#d84b2a", "#ee9586","#e4b7b2","#AAA","#beccae", "#9caf84", "#7aa25c"]),
-        strokeColor     : d3.scale.ordinal().domain([-3,-2,-1,0,1,2,3]).range(["#c72d0a", "#e67761","#d9a097","#999","#a7bb8f", "#7e965d", "#5a8731"]),
+        fillColor       : d3.scale.ordinal().domain([-3,-2,-1,0,1,2,3])
+            .range(["#d84b2a", "#ee9586","#e4b7b2","#AAA","#beccae", "#9caf84", "#7aa25c"]),
+        strokeColor     : d3.scale.ordinal().domain([-3,-2,-1,0,1,2,3])
+            .range(["#c72d0a", "#e67761","#d9a097","#999","#a7bb8f", "#7e965d", "#5a8731"]),
         getFillColor    : null,
         getStrokeColor  : null,
         pFormat         : d3.format("+.1%"),
@@ -81,22 +79,16 @@ g.Chart = function(){
 
         bigFormat       : function(n){return g.formatNumber(n*1000)},
         nameFormat      : function(n){return n},
-        discretionFormat: function(d){
-            if (d == 'Discretionary' || d == 'Mandatory') {
-                return d + " spending"
-            } else {return d}
-        },
 
-        rScale          : d3.scale.pow().exponent(0.5).domain([0,1000000000]).range([1,90]),
+        rScale          : d3.scale.pow().exponent(0.5).domain([0,this.totalValue]).range([1,90]),
         radiusScale     : null,
         changeScale     : d3.scale.linear().domain([-0.28,0.28]).range([620,180]).clamp(true),
         sizeScale       : d3.scale.linear().domain([0,110]).range([0,1]),
         groupScale      : {},
 
         //data settings
-        currentYearDataColumn   : 'budget_2013',
-        previousYearDataColumn  : 'budget_2012',
-        data                    : g.budget_array_data,
+        currentYearDataColumn   : 'cnt',
+        data                    : g.tweet_data,
         categoryPositionLookup  : {},
         categoriesList          : [],
 
@@ -160,49 +152,34 @@ g.Chart = function(){
                 if( firstp ) {
                     that.start();
                     that.totalLayout();
-//                } else {
-//                    that.force.start();
                 }
-                that.dev(2);
+                //that.dev(2);
             });
         },
 
         processData : function() {
             var that = this;
+            that.totalValue = 0;
 
             // Builds the nodes data array from the original data
             for (var i=0; i < this.data.length; i++) {
                 var n = this.data[i];
                 var out = {
-//                    id: n['id'],
                     id: i,
                     radius: this.radiusScale(n[this.currentYearDataColumn]),
-//                    group: n['department'],
-//                    change: n['change'],
-                    changeCategory: this.categorizeChange(n['change']),
+//                    changeCategory: this.categorizeChange(n['change']),
                     value: n[this.currentYearDataColumn],
-                    name: n['name'],
-//                    discretion: n['discretion'],
+                    name: n['word'],
                     isNegative: (n[this.currentYearDataColumn] < 0),
-//                    positions: n.positions,
-//                    x:Math.random() * 1000,
-//                    y:Math.random() * 1000
                 }
 
-                if (n.positions.total) {
-                    out.x = n.positions.total.x +
-                        (n.positions.total.x - (that.width / 2)) * 0.5;
-                    out.y = n.positions.total.y +
-                        (n.positions.total.y - (150)) * 0.5;
-                };
-/*                if ((n[this.currentYearDataColumn] > 0) !==
-                    (n[this.previousYearDataColumn] > 0)) {
-                    out.change = "N.A.";
-                    out.changeCategory = 0;
-                };
-*/
-                this.nodes[i] = out;
+                that.nodes[i] = out;
+                that.totalValue += out.value;
             };
+
+            that.rScale = d3.scale.pow().exponent(0.5)
+                .domain([0,that.totalValue]).range([1,90]);
+            that.boundingRadius = that.radiusScale(that.totalValue);
 
         },
 
@@ -211,7 +188,7 @@ g.Chart = function(){
             var that = this;
             console.log(g.c.nodes[0]);
             setTimeout(function() {
-                that.nodes[0].value = 1075650000;
+                that.nodes[0].value = 103;
                 that.nodes[0].radius = that.radiusScale(that.nodes[0].value);
                 var circle = that.svg.selectAll("circle")
                     .data(that.nodes, ƒ('id'))
@@ -388,8 +365,7 @@ g.Chart = function(){
                 //   d.y += 1000 * alpha * alpha * alpha
                 // }
 
-
-                var targetY = that.centerY - (d.changeCategory / 3) * that.boundingRadius
+                var targetY = that.centerY;
                 d.y = d.y + (targetY - d.y) * (that.defaultGravity) * alpha * alpha * alpha * 100
 
 
