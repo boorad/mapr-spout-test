@@ -14,7 +14,7 @@ var g = g || {};
 
 g.Chart = function(){
     return {
-        url : "data/tweets.json",
+        url : "data/words.json",
         $j : jQuery,
         //defaults
         width           : 550,
