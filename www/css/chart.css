@@ -1,44 +1,43 @@
 #container {
-    font: 12px Helvetica, "Helvetica Neue", sans-serif;
-    margin: 0px auto 22px;
-    clear: both;
-    width: 960px;
-}
+  font: 12px Helvetica, "Helvetica Neue", sans-serif;
+  margin: 0px auto 22px;
+  clear: both;
+  width: 960px;
+  background-color: #00bfff; }
+  #container div {
+    display: inline-block;
+    vertical-align: top; }
+    #container div h2 {
+      text-align: center;
+      width: 100%;
+      color: #0000cc; }
+  #container #names {
+    width: 400px; }
 
-#chart {
-    background-color: #00bfff;
-}
-
-/*
-path.line {
-    stroke-width: 3px;
-    fill: none;
-}
-
-.line.s_all {
-    stroke: black;
-    color: black
-}
-
-.line.s_male {
-    stroke: #89CFF0;
-    color: #89CFF0;
-}
-
-.line.s_female {
-    stroke: pink;
-    color: pink;
-}
-
-.line.summary {
-    stroke-width: 1px;
-}
-
-div.summary {
-    display: none;
-}
-
-.legend {
-    text-align: center;
-}
-*/
+#tooltip {
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  text-align: center; }
+  #tooltip #tt-container {
+    position: absolute;
+    bottom: 0;
+    width: 230px;
+    left: -125px;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 10px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #000;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+    -moz-box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(200, 200, 200, 0.85);
+    text-align: center; }
+    #tooltip #tt-container .tail {
+      position: absolute;
+      bottom: -8px;
+      left: 105px;
+      width: 40px;
+      height: 8px;
+      background: url("img/tail_white.png") 50% 0%; }

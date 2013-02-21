@@ -14,3 +14,5 @@ target/*
 log/*
 data/*
 conf/*.properties
+
+*sass-cache*

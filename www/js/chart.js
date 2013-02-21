@@ -75,7 +75,6 @@ g.Chart = function(){
         simpleFormat    : d3.format(","),
         simpleDecimal   : d3.format(",.2f"),
 
-        bigFormat       : function(n){return g.formatNumber(n*1000)},
         nameFormat      : function(n){return n},
 
         rScale          : null,
@@ -120,7 +119,7 @@ g.Chart = function(){
             this.centerX = this.width / 2;
             this.centerY = 300;
 
-            var svg = d3.select("#chart").selectAll("svg").data([0]);
+            var svg = d3.select("#words").selectAll("svg").data([0]);
             svg.enter().append("svg")
                 .attr("width", this.width);
             this.svg = svg;
@@ -196,6 +195,10 @@ g.Chart = function(){
 
             var circle = this.svg.selectAll("circle").data(that.nodes, ƒ('id'));
 
+            var lft = that.svg[0][0].offsetLeft;
+            var top = that.svg[0][0].offsetTop;
+
+
             circle.enter().append("circle")
                 .style("fill", that.fillColor)
                 .style("stroke-width", 1)
@@ -203,22 +206,21 @@ g.Chart = function(){
                 .call(that.circleAttrs)
                 .on("mouseover",function(d,i) {
                     var el = d3.select(this)
-                    var xpos = Number(el.attr('cx'))
-                    var ypos = (el.attr('cy') - d.radius - 10)
+                    var xpos = Number(el.attr('cx')) + lft
+                    var ypos = (el.attr('cy') - d.radius - 10 + top)
                     el.style("stroke","#000").style("stroke-width",3);
-                    d3.select("#g-tooltip")
+                    d3.select("#tooltip")
                         .style('top',ypos+"px")
-                        .style('left',xpos+"px").style('display','block')
-                        .classed('g-plus', (d.changeCategory > 0))
-                        .classed('g-minus', (d.changeCategory < 0));
-                    d3.select("#g-tooltip .g-name").
+                        .style('left',xpos+"px")
+                        .style('display','block')
+                    d3.select("#tooltip .name").
                         html(that.nameFormat(d.name))
+                    d3.select("#tooltip .value")
+                        .html(that.formatNumber(d.value))
 /*
                     d3.select("#g-tooltip .g-discretion")
                         .text(that.discretionFormat(d.discretion))
                     d3.select("#g-tooltip .g-department").text(d.group)
-                    d3.select("#g-tooltip .g-value")
-                        .html("$"+that.bigFormat(d.value))
 
                     var pctchngout = that.pctFormat(d.change)
                     if (d.change == "N.A.") {
@@ -231,7 +233,8 @@ g.Chart = function(){
                     d3.select(this)
                         .style("stroke-width",1)
                         .style("stroke", that.strokeColor)
-                    d3.select("#g-tooltip").style('display','none')});
+                    d3.select("#tooltip")
+                        .style('display','none')});
 
             circle.exit().transition().duration(300).remove();
             circle.call(that.circleAttrs);
@@ -410,8 +413,54 @@ g.Chart = function(){
                 });
             };
 
-        }
+        },
 
+        formatNumber : function(n,decimals) {
+            var s, remainder, num, negativePrefix, negativeSuffix, prefix, suffix;
+            suffix = ""
+            negativePrefix = ""
+            negativeSuffix = ""
+            if (n < 0) {
+                negativePrefix = "";
+                negativeSuffix = " in income"
+                n = -n
+            };
+
+            if (n >= 1000000000000) {
+                suffix = " trillion"
+                n = n / 1000000000000
+                decimals = 2
+            } else if (n >= 1000000000) {
+                suffix = " billion"
+                n = n / 1000000000
+                decimals = 1
+            } else if (n >= 1000000) {
+                suffix = " million"
+                n = n / 1000000
+                decimals = 1
+            }
+
+
+            prefix = ""
+            if (decimals > 0) {
+                if (n<1) {prefix = "0"};
+                s = String(Math.round(n * (Math.pow(10,decimals))));
+                if (s < 10) {
+                    remainder = "0" + s.substr(s.length-(decimals),decimals);
+                    num = "";
+                } else{
+                    remainder = s.substr(s.length-(decimals),decimals);
+                    num = s.substr(0,s.length - decimals);
+                }
+
+
+                return  negativePrefix + prefix + num.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") + "." + remainder + suffix + negativeSuffix;
+            } else {
+                s = String(Math.round(n));
+                s = s.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
+                return  negativePrefix + s + suffix + negativeSuffix;
+            }
+        }
     }
 };
 
