@@ -103,7 +103,6 @@ g.Chart = function(){
                 } else {
                     return that.pFormat(p)
                 }
-
             }
 
             this.getStrokeColor = function(d){
@@ -124,23 +123,29 @@ g.Chart = function(){
                 .attr("width", this.width);
             this.svg = svg;
 
-            this.getData();
+            console.log("init");
+            that.getData(function() {
+                console.log("init getData callback");
+                that.render();
+                that.start();
+                that.totalLayout();
+                // TODO: figure out callback for d3.force()? and then:
+                //that.data_loop();
+            });
 
         },
 
-        getData : function() {
+        getData : function(callback) {
             var that = this;
-            d3.json(that.url, function(error, json) {
-                if( error ) return console.warn(error);
-                var firstp = (!that.data || that.data.length == 0);
-                that.data = json;
-                that.processData();
-                that.render();
-                if( firstp ) {
-                    that.start();
-                    that.totalLayout();
+            $.ajax({
+                url : that.url,
+                dataType : "json",
+                cache : false,
+                success : function(json, status, jqXHR) {
+                    that.data = json;
+                    that.processData();
+                    callback();
                 }
-                //that.dev(2);
             });
         },
 
@@ -164,30 +169,25 @@ g.Chart = function(){
                     id: i,
                     radius: this.radiusScale(n[this.currentYearDataColumn]),
                     value: n[this.currentYearDataColumn],
-                    name: n['word'],
-                    isNegative: (n[this.currentYearDataColumn] < 0),
+                    name: n['word']
                 }
-
                 that.nodes[i] = out;
-            };
-
+            }
 
         },
 
-        // for dev only
-        dev : function(wait) {
+        data_loop : function() {
             var that = this;
-            console.log(g.c.nodes[0]);
-            setTimeout(function() {
-                that.nodes[0].value = 103;
-                that.nodes[0].radius = that.radiusScale(that.nodes[0].value);
-                var circle = that.svg.selectAll("circle")
-                    .data(that.nodes, ƒ('id'))
-                circle.transition(200).call(that.circleAttrs);
-                that.totalLayout();
-                console.log(g.c.nodes[0]);
-            }, wait * 1000);
+            this.data_interval = setInterval(function() {
+                that.getData(function() {
+                    console.log("data_loop getData callback");
+                    that.render();
+                });
+            }, 1000);
+        },
 
+        pause_data_loop : function() {
+            clearInterval(this.data_interval);
         },
 
         render : function() {
@@ -198,7 +198,6 @@ g.Chart = function(){
             var lft = that.svg[0][0].offsetLeft;
             var top = that.svg[0][0].offsetTop;
 
-
             circle.enter().append("circle")
                 .style("fill", that.fillColor)
                 .style("stroke-width", 1)
@@ -207,7 +206,7 @@ g.Chart = function(){
                 .on("mouseover",function(d,i) {
                     var el = d3.select(this)
                     var xpos = Number(el.attr('cx')) + lft
-                    var ypos = (el.attr('cy') - d.radius - 10 + top)
+                    var ypos = Number(el.attr('cy')) - d.radius - 10 + top
                     el.style("stroke","#000").style("stroke-width",3);
                     d3.select("#tooltip")
                         .style('top',ypos+"px")
@@ -248,26 +247,39 @@ g.Chart = function(){
                 .attr("r", ƒ('radius'));
         },
 
+        render_loop : function() {
+            var that = this;
 
-        //
-        //
-        //
-        getCirclePositions: function(){
-            var that = this
-            var circlePositions = {};
-            this.circle.each(function(d){
+            // initial loads
+            that.pause_data_loop();
+            that.render();
+            that.start();
+            that.totalLayout();
 
-                circlePositions[d.id] = {
-                    x:Math.round(d.x),
-                    y:Math.round(d.y)
-                }
-
-
-            })
-                return JSON.stringify(circlePositions)
+            setTimeout(function() {
+                // loop
+                that.render_interval = setInterval(function() {
+                    that.pause_data_loop();
+                    that.render();
+                    console.log("render_loop");
+                    that.data_loop();
+                }, 1000);
+            }, 2000);
         },
 
+        pause_render_loop : function() {
+            clearInterval(this.render_interval);
+        },
 
+        loop : function() {
+            this.data_loop();
+            this.render_loop();
+        },
+
+        pause : function() {
+            this.pause_data_loop();
+            this.pause_render_loop();
+        },
 
         //
         //
@@ -275,12 +287,10 @@ g.Chart = function(){
         start: function() {
             var that = this;
             this.force = d3.layout.force()
-                .nodes(this.nodes)
-                .size([this.width, this.height]);
+                .nodes(that.nodes)
+                .size([that.width, that.height]);
+            console.log("start");
         },
-
-
-
 
         //
         //
@@ -299,7 +309,6 @@ g.Chart = function(){
                         .attr("cy", function(d) { return d.y; });
                 })
                 .start();
-
         },
 
         // --------------------------------------------------------------------
@@ -316,25 +325,8 @@ g.Chart = function(){
                 var targetY = that.centerY;
                 var targetX = that.width / 2;
 
-
-                if (d.isNegative) {
-                    if (d.changeCategory > 0) {
-                        d.x = - 200
-                    } else {
-                        d.x =  1100
-                    }
-                }
-
-                // if (d.positions.total) {
-                //   targetX = d.positions.total.x
-                //   targetY = d.positions.total.y
-                // };
-
-
-
-                //
-                d.y = d.y + (targetY - d.y) * (that.defaultGravity + 0.02) * alpha
-                d.x = d.x + (targetX - d.x) * (that.defaultGravity + 0.02) * alpha
+                d.y = d.y + (targetY-d.y) * (that.defaultGravity + 0.02) * alpha
+                d.x = d.x + (targetX-d.x) * (that.defaultGravity + 0.02) * alpha
 
             };
         },
@@ -345,74 +337,10 @@ g.Chart = function(){
         buoyancy: function(alpha) {
             var that = this;
             return function(d){
-                // d.y -= 1000 * alpha * alpha * alpha * d.changeCategory
-
-                // if (d.changeCategory >= 0) {
-                //   d.y -= 1000 * alpha * alpha * alpha
-                // } else {
-                //   d.y += 1000 * alpha * alpha * alpha
-                // }
-
                 var targetY = that.centerY;
-                d.y = d.y + (targetY - d.y) * (that.defaultGravity) * alpha * alpha * alpha * 100
-
-
-
+                d.y = d.y + (targetY - d.y) * (that.defaultGravity) * alpha *
+                    alpha * alpha * 100
             };
-        },
-
-
-        //
-        //
-        //
-        comparisonSort: function(alpha) {
-            var that = this;
-            return function(d){
-                var targetY = that.height / 2;
-                var targetX = 650;
-
-
-                d.y = d.y + (targetY - d.y) * (that.defaultGravity) * alpha
-                d.x = d.x + (targetX - d.x) * (that.defaultGravity) * alpha
-            };
-        },
-
-
-
-        //
-        //
-        //
-        collide: function(alpha){
-            var that = this;
-            var padding = 6;
-            var quadtree = d3.geom.quadtree(this.nodes);
-            return function(d) {
-                var r = d.radius + that.maxRadius + padding,
-                nx1 = d.x - r,
-                nx2 = d.x + r,
-                ny1 = d.y - r,
-                ny2 = d.y + r;
-                quadtree.visit(function(quad, x1, y1, x2, y2) {
-                    if (quad.point && (quad.point !== d) && (d.group === quad.point.group)) {
-                        var x = d.x - quad.point.x,
-                        y = d.y - quad.point.y,
-                        l = Math.sqrt(x * x + y * y),
-                        r = d.radius + quad.point.radius;
-                        if (l < r) {
-                            l = (l - r) / l * alpha;
-                            d.x -= x *= l;
-                            d.y -= y *= l;
-                            quad.point.x += x;
-                            quad.point.y += y;
-                        }
-                    }
-                    return x1 > nx2
-                        || x2 < nx1
-                        || y1 > ny2
-                        || y2 < ny1;
-                });
-            };
-
         },
 
         formatNumber : function(n,decimals) {
