@@ -15,9 +15,23 @@
     </repository>
   </repositories>
   <dependencies>
+    <!--
+    <dependency>
+      <groupId>com.mapr</groupId>
+      <artifactId>mapr-spout</artifactId>
+      <scope>system</scope>
+      <systemPath>/home/rlankenau/mapr-spout/target/mapr-spout-0.1.jar</systemPath>
+      <version>0.1</version>
+    </dependency>
+    -->
     <dependency>
       <groupId>org.twitter4j</groupId>
       <artifactId>twitter4j-core</artifactId>
+      <version>[3.0,)</version>
+    </dependency>
+    <dependency>
+      <groupId>org.twitter4j</groupId>
+      <artifactId>twitter4j-stream</artifactId>
       <version>[3.0,)</version>
     </dependency>
     <dependency>
