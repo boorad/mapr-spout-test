@@ -1,0 +1,54 @@
+#container {
+    font: 12px Helvetica, "Helvetica Neue", sans-serif;
+    margin: 0px auto 22px;
+    clear: both;
+    width: 960px;
+    background-color: #00bfff;
+
+    div {
+        display: inline-block;
+        vertical-align: top;
+        h2 {
+            text-align: center;
+            width: 100%;
+            color: #0000cc;
+        }
+    }
+
+    #names {
+        width: 400px;
+    }
+}
+
+#tooltip {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    text-align: center;
+
+    #tt-container {
+        position: absolute;
+        bottom: 0;
+        width: 230px;
+        left: -125px;
+        font-size: 12px;
+        line-height: 16px;
+        padding: 10px;
+        border-radius: 3px;
+        background: rgba(255,255,255,0.9);
+        color: #000;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        -moz-box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        border:1px solid rgba(200,200,200,0.85);
+        text-align:center;
+
+        .tail {
+            position: absolute;
+            bottom: -8px;
+            left: 105px;
+            width: 40px;
+            height: 8px;
+            background: url('../img/tail_white.png') 50% 0%;
+        }
+    }
+}
