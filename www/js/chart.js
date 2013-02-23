@@ -14,7 +14,8 @@ var g = g || {};
 
 g.Chart = function(){
     return {
-        url : "data/words.json",
+        words_url : "data/words.json",
+        users_url : "data/users.json",
         $j : jQuery,
         //defaults
         width           : 550,
@@ -23,8 +24,7 @@ g.Chart = function(){
         totalValue      : 0,
 
 
-        //will be calculated later
-//        boundingRadius  : null,
+        // will be calculated later
         maxRadius       : null,
         centerX         : null,
         centerY         : null,
@@ -123,33 +123,32 @@ g.Chart = function(){
                 .attr("width", this.width);
             this.svg = svg;
 
-            console.log("init");
-            that.getData(function() {
-                console.log("init getData callback");
+            that.getWordData(function() {
                 that.render();
                 that.start();
                 that.totalLayout();
-                // TODO: figure out callback for d3.force()? and then:
-                //that.data_loop();
+
+                that.data_loop();
             });
 
         },
 
-        getData : function(callback) {
+        getWordData : function(callback) {
             var that = this;
             $.ajax({
-                url : that.url,
+                url : that.words_url,
                 dataType : "json",
                 cache : false,
                 success : function(json, status, jqXHR) {
                     that.data = json;
-                    that.processData();
-                    callback();
+                    var changed = that.processData();
+                    if( changed ) callback();
                 }
             });
         },
 
         processData : function() {
+            var changed = false;
             var that = this;
             that.totalValue = 0;
 
@@ -164,25 +163,47 @@ g.Chart = function(){
 
             // Builds the nodes data array from the original data
             for (var i=0; i < this.data.length; i++) {
-                var n = this.data[i];
-                var out = {
-                    id: i,
-                    radius: this.radiusScale(n[this.currentYearDataColumn]),
-                    value: n[this.currentYearDataColumn],
-                    name: n['word']
+                var n = that.data[i];
+                var o = that.nodes[i];
+                var val = n[this.currentYearDataColumn];
+                if( !o || o.name != n.word || o.value != val ) {
+                    changed = true;
+                    if( o ) {
+                        o.value = n.cnt;
+                        o.radius = this.radiusScale(val);
+                        that.nodes[i] = o;
+                    } else {
+                        var out = {
+                            id: i,
+                            radius: this.radiusScale(val),
+                            value: val,
+                            name: n.word
+                        }
+                        that.nodes[i] = out;
+                    }
                 }
-                that.nodes[i] = out;
             }
-
+            return changed;
         },
 
         data_loop : function() {
             var that = this;
             this.data_interval = setInterval(function() {
-                that.getData(function() {
-                    console.log("data_loop getData callback");
-                    that.render();
-                });
+                // make sure force-directed layout is done before starting loop
+                if( that.force.alpha() == 0 ) {
+                    that.getWordData(function() {
+                        that.render();
+                        that.force
+                            .on("tick", function(e){
+                                that.circle
+                                    .each(that.totalSort(e.alpha))
+                                    .each(that.buoyancy(0))
+                                    .attr("cx", ƒ('x'))
+                                    .attr("cy", ƒ('y'));
+                            })
+                            .start();
+                    });
+                }
             }, 1000);
         },
 
@@ -216,17 +237,6 @@ g.Chart = function(){
                         html(that.nameFormat(d.name))
                     d3.select("#tooltip .value")
                         .html(that.formatNumber(d.value))
-/*
-                    d3.select("#g-tooltip .g-discretion")
-                        .text(that.discretionFormat(d.discretion))
-                    d3.select("#g-tooltip .g-department").text(d.group)
-
-                    var pctchngout = that.pctFormat(d.change)
-                    if (d.change == "N.A.") {
-                        pctchngout = "N.A."
-                    };
-                    d3.select("#g-tooltip .g-change").html(pctchngout)
-*/
                 })
                 .on("mouseout",function(d,i) {
                     d3.select(this)
@@ -247,38 +257,12 @@ g.Chart = function(){
                 .attr("r", ƒ('radius'));
         },
 
-        render_loop : function() {
-            var that = this;
-
-            // initial loads
-            that.pause_data_loop();
-            that.render();
-            that.start();
-            that.totalLayout();
-
-            setTimeout(function() {
-                // loop
-                that.render_interval = setInterval(function() {
-                    that.pause_data_loop();
-                    that.render();
-                    console.log("render_loop");
-                    that.data_loop();
-                }, 1000);
-            }, 2000);
-        },
-
-        pause_render_loop : function() {
-            clearInterval(this.render_interval);
-        },
-
         loop : function() {
             this.data_loop();
-            this.render_loop();
         },
 
         pause : function() {
             this.pause_data_loop();
-            this.pause_render_loop();
         },
 
         //
@@ -289,7 +273,6 @@ g.Chart = function(){
             this.force = d3.layout.force()
                 .nodes(that.nodes)
                 .size([that.width, that.height]);
-            console.log("start");
         },
 
         //
@@ -304,9 +287,9 @@ g.Chart = function(){
                 .on("tick", function(e){
                     that.circle
                         .each(that.totalSort(e.alpha))
-                            .each(that.buoyancy(e.alpha))
-                                .attr("cx", function(d) { return d.x; })
-                        .attr("cy", function(d) { return d.y; });
+                        .each(that.buoyancy(e.alpha))
+                        .attr("cx", ƒ('x'))
+                        .attr("cy", ƒ('y'));
                 })
                 .start();
         },
