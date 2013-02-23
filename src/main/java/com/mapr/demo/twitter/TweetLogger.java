@@ -23,16 +23,19 @@ public class TweetLogger {
      * @throws IOException
      */
     public static void main(String[] args) throws IOException, ServiceException {
+	if(args.length < 3) {
+		System.out.println("Usage: java -cp <classpath> com.mapr.demo.twitter.TweetLogger <catcherhost> <catcherport> <topic>");
+	}
 
-        query(args[0]);
+        query(args[2], args[0], Integer.parseInt(args[1]));
 //        stream(args[0]);
     }
 
-    private static void query(String query_term) throws IOException, ServiceException {
+    private static void query(String query_term, String host, int port) throws IOException, ServiceException {
 
         // Franz client
         Client c = new Client(
-                Lists.newArrayList(new PeerInfo("localhost", 8080)));
+                Lists.newArrayList(new PeerInfo(host, port)));
 
         // Twitter Client
         Twitter twitter = new TwitterFactory().getInstance();
@@ -54,6 +57,9 @@ public class TweetLogger {
         } catch (TwitterException te) {
             te.printStackTrace();
             System.out.println("Failed to search tweets: " + te.getMessage());
+            System.exit(-1);
+	} catch (Throwable t) {
+	    System.out.println(t);
             System.exit(-1);
         } finally {
             c.close();
