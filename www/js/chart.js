@@ -143,6 +143,11 @@ g.Chart = function(){
                     that.data = json;
                     var changed = that.processData();
                     if( changed ) callback();
+                },
+                error : function(jqXHR, status, error) {
+                    //console.error(jqXHR, status, error);
+                    that.data = {};
+                    callback();
                 }
             });
         },
@@ -153,44 +158,48 @@ g.Chart = function(){
             that.totalValue = 0;
 
             // get totals first - double traversal, sigh.
-            for (var i=0; i < this.data.length; i++) {
-                var n = this.data[i];
-                that.totalValue += n[this.currentYearDataColumn];
+            for( i in that.data ) {
+                if( that.data.hasOwnProperty(i) ) {
+                    that.totalValue++;
+                }
             }
             that.rScale = d3.scale.pow().exponent(0.5)
-                .domain([0,that.totalValue/6]).range([1,90]);
+                .domain([0,that.totalValue/2]).range([1,90]);
             that.radiusScale = function(n){ return that.rScale(Math.abs(n)); };
 
             // Builds the nodes data array from the original data
-            for (var i=0; i < this.data.length; i++) {
-                var n = that.data[i];
+            //for (var i=0; i < this.data.length; i++) {
+            var i=0;
+            if( !that.data ) return true;
+            $.each( that.data, function(word, cnt) {
                 var o = that.nodes[i];
-                var val = n[this.currentYearDataColumn];
-                if( !o || o.name != n.word || o.value != val ) {
+                if( !o || o.name != word || o.value != cnt ) {
                     changed = true;
                     if( o ) {
-                        o.value = n.cnt;
-                        o.radius = this.radiusScale(val);
+                        o.value = cnt;
+                        o.radius = that.radiusScale(cnt);
                         that.nodes[i] = o;
                     } else {
                         var out = {
                             id: i,
-                            radius: this.radiusScale(val),
-                            value: val,
-                            name: n.word
+                            radius: that.radiusScale(cnt),
+                            value: cnt,
+                            name: word
                         }
                         that.nodes[i] = out;
                     }
                 }
-            }
-            return changed;
+                i++;
+            });
+            return i==0 || changed;
         },
 
         data_loop : function() {
             var that = this;
             this.data_interval = setInterval(function() {
                 // make sure force-directed layout is done before starting loop
-                if( that.force.alpha() == 0 ) {
+                if( that.force.alpha() < 0.01 ) {
+                    that.force.stop();
                     that.getWordData(function() {
                         that.render();
                         that.force

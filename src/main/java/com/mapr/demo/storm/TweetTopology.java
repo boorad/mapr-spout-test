@@ -15,6 +15,7 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.tuple.Fields;
 
 import com.mapr.TailSpout;
 import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
@@ -41,10 +42,8 @@ public class TweetTopology {
         return props;
     }
 
-    public static void main(String[] args) throws
-            AlreadyAliveException,
-            InvalidTopologyException,
-            InterruptedException {
+    public static void main(String[] args) throws AlreadyAliveException,
+            InvalidTopologyException, InterruptedException {
 
         Log.info("---------------------");
         Log.info("------STARTING-------");
@@ -63,37 +62,35 @@ public class TweetTopology {
         File statusFile = new File(baseDir + "/status");
         File inDir = new File(baseDir);
         Pattern inPattern = Pattern.compile("tweets");
-
         TailSpout spout = new TailSpout(spf, statusFile, inDir, inPattern);
         spout.setReliableMode(true);
 
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
-        topologyBuilder
-            .setBolt("print_bolt", new PrintBolt(props), 1)
+        topologyBuilder.setBolt("tokenizer_bolt", new TokenizerBolt(), 1)
             .shuffleGrouping("mapr_tail_spout");
+        topologyBuilder.setBolt("counter_bolt", new TokenCountBolt(), 1)
+            .fieldsGrouping("tokenizer_bolt", new Fields("word"));
 
         Config conf = new Config();
         conf.setDebug(true);
 
         Log.info("topology built.");
 
+/*
         // TODO: properties file
         conf.setNumWorkers(300);
         conf.setMaxSpoutPending(5000);
         conf.setMaxTaskParallelism(500);
-
-        // if (args != null && args.length > 0) {
-        // StormSubmitter.submitTopology(args[0], conf,
-        // topologyBuilder.createTopology());
-        // } else {
-
+*/
         if (remote) {
             Log.info("Sleeping 1 seconds before submitting topology");
             Thread.sleep(1000);
-            StormSubmitter.submitTopology("Heartbyte_Topology", conf, topologyBuilder.createTopology());
+            StormSubmitter.submitTopology("mapr-spout-test Topology", conf,
+                    topologyBuilder.createTopology());
         } else {
             LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology("heartbyte_process", conf, topologyBuilder.createTopology());
+            cluster.submitTopology("mapr-spout-test Local Topology", conf,
+                    topologyBuilder.createTopology());
 
             // TODO: rest of this is for DEV only
             Thread.sleep(600000);

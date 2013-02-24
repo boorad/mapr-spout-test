@@ -3,7 +3,14 @@ package com.mapr.demo.twitter;
 import java.io.IOException;
 import java.util.List;
 
-import twitter4j.*;
+import org.apache.log4j.Logger;
+
+import twitter4j.Query;
+import twitter4j.QueryResult;
+import twitter4j.Status;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ServiceException;
@@ -11,6 +18,8 @@ import com.googlecode.protobuf.pro.duplex.PeerInfo;
 import com.mapr.franz.catcher.Client;
 
 public class TweetLogger {
+
+    public static final Logger log = Logger.getLogger(TweetLogger.class);
 
     /**
      * @param args
