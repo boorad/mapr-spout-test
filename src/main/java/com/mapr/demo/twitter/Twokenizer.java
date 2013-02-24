@@ -159,6 +159,9 @@ public class Twokenizer implements Serializable {
    // simpleTokenize should be called after using squeezeWhitespace()
    public List<String> simpleTokenize(String text) {
 
+       // lowercase everything
+       text = text.toLowerCase();
+
        // Do the no-brainers first
        String splitPunctText = splitEdgePunct(text);
        int textLength = splitPunctText.length();
@@ -234,7 +237,10 @@ public class Twokenizer implements Serializable {
            Vector<String> tokens = splitToken(str);
            // only add non-empty tokens
            for (String token: tokens) {
-               if (!token.isEmpty()) {
+               if (!token.isEmpty()
+                       && !token.matches(punctChars)
+                       && !token.matches(entity)
+                       ) {
                    finalTokens.add(token);
                }
            }

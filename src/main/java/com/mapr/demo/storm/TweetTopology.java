@@ -23,6 +23,7 @@ import com.mapr.storm.streamparser.StreamParserFactory;
 
 public class TweetTopology {
 
+    private static final String DEFAULT_TOP_N = "150";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     private static String baseDir = "";
     public static final Logger Log = Logger.getLogger(TweetTopology.class);
@@ -56,6 +57,7 @@ public class TweetTopology {
         boolean remote = Boolean.parseBoolean(props.getProperty("remote"));
         int numSpouts = Integer.parseInt(props.getProperty("spouts"));
         baseDir = props.getProperty("base.directory", DEFAULT_BASE_DIR);
+        int top_n = Integer.parseInt(props.getProperty("top.n", DEFAULT_TOP_N));
 
         // init the MapR Tail Spout
         StreamParserFactory spf = new CountBlobStreamParserFactory();
@@ -66,10 +68,17 @@ public class TweetTopology {
         spout.setReliableMode(true);
 
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
-        topologyBuilder.setBolt("tokenizer_bolt", new TokenizerBolt(), 1)
+        topologyBuilder.setBolt("tokenizer", new TokenizerBolt(), 1)
             .shuffleGrouping("mapr_tail_spout");
-        topologyBuilder.setBolt("counter_bolt", new TokenCountBolt(), 1)
-            .fieldsGrouping("tokenizer_bolt", new Fields("word"));
+        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(9,3), 1)
+            .fieldsGrouping("tokenizer", new Fields("word"));
+        topologyBuilder.setBolt("intermediate_rank",
+                new IntermediateRankingsBolt(top_n), 1)
+            .fieldsGrouping("rolling_count", new Fields("obj"));
+        topologyBuilder.setBolt("total_rank", new TotalRankingsBolt(top_n), 1)
+            .globalGrouping("intermediate_rank");
+        topologyBuilder.setBolt("flush", new FlushRankingsBolt(), 1)
+            .globalGrouping("total_rank");
 
         Config conf = new Config();
         conf.setDebug(true);
