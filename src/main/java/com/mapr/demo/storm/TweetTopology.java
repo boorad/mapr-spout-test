@@ -1,12 +1,10 @@
 package com.mapr.demo.storm;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import com.google.common.io.Resources;
 import org.apache.log4j.Logger;
 
 import backtype.storm.Config;
@@ -29,9 +27,13 @@ public class TweetTopology {
     public static final Logger Log = Logger.getLogger(TweetTopology.class);
     private static final String PROPERTIES_FILE = "conf/test.properties";
 
-    private static Properties loadProperties() {
+    public static Properties loadProperties() {
         Properties props = new Properties();
         try {
+            InputStream base = Resources.getResource("base.properties").openStream();
+            props.load(base);
+            base.close();
+
             FileInputStream in = new FileInputStream(PROPERTIES_FILE);
             props.load(in);
             in.close();
