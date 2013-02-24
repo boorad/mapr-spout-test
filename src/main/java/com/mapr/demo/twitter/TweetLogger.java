@@ -40,6 +40,7 @@ public class TweetLogger {
         }
 
         TweetLogger t = new TweetLogger();
+        t.query(args[2], args[0], Integer.parseInt(args[1]));
         t.stream(args[2], args[0], Integer.parseInt(args[1]));
 
     }
