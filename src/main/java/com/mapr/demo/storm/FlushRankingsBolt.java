@@ -28,8 +28,11 @@ public class FlushRankingsBolt extends BaseRichBolt {
     private static final long serialVersionUID = 3199927072520036231L;
     public static final Logger Log = Logger.getLogger(FlushRankingsBolt.class);
     private OutputCollector collector;
+    private String type = "unknown";
 
-    public FlushRankingsBolt() {}
+    public FlushRankingsBolt(String type) {
+        this.type = type;
+    }
 
     public void execute(Tuple tuple) {
         Rankings rankings = (Rankings)tuple.getValue(0);
@@ -58,7 +61,8 @@ public class FlushRankingsBolt extends BaseRichBolt {
 
     private void flush(JSONObject json) {
         // TODO: hardcoded
-        File f = new File("/Users/brad/dev/mapr/mapr-spout-test/www/data/words.json");
+        File f = new File("/Users/brad/dev/mapr/mapr-spout-test/www/data/" +
+                type + ".json");
         try {
             Files.write((CharSequence)JSONValue.toJSONString(json), f,
                     Charset.forName("UTF-8"));
