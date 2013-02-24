@@ -15,7 +15,6 @@ var g = g || {};
 g.Chart = function(){
     return {
         words_url : "data/words.json",
-        users_url : "data/users.json",
         $j : jQuery,
         //defaults
         width           : 550,
@@ -130,7 +129,6 @@ g.Chart = function(){
 
                 that.data_loop();
             });
-
         },
 
         getWordData : function(callback) {
@@ -145,7 +143,6 @@ g.Chart = function(){
                     if( changed ) callback();
                 },
                 error : function(jqXHR, status, error) {
-                    //console.error(jqXHR, status, error);
                     that.data = {};
                     callback();
                 }
@@ -179,14 +176,14 @@ g.Chart = function(){
                 if( data[o.word] ) { // in both
                     if( parseInt(data[o.word]) != parseInt(o.cnt) ) {
                         // new value
-                        console.log("changed", o.word, o.cnt, data[o.word]);
+                        //console.log("changed", o.word, o.cnt, data[o.word]);
                         that.nodes[i].cnt = data[o.word];
                         changed = true;
                     }
                     that.nodes[i].radius = that.radiusScale(data[o.word]);
                     delete data[o.word]
                 } else { // in nodes but not in data
-                    console.log("removed", o.word, o.cnt);
+                    //console.log("removed", o.word, o.cnt);
                     that.nodes.splice(i,1);
                     changed = true;
                 }
@@ -194,7 +191,7 @@ g.Chart = function(){
 
             // now go thru anything remaining in data and add to nodes
             $.each( data, function(word, cnt) {
-                console.log("added", word, cnt);
+                //console.log("added", word, cnt);
                 that.nodes.push({
                     "word"   : word,
                     "cnt"    : cnt,
@@ -398,8 +395,12 @@ g.Chart = function(){
 };
 
 g.ready = function() {
+    // bubble chart
     g.c = new g.Chart();
     g.c.init();
+    // username cloud
+    g.u = new g.Cloud();
+    g.u.init();
 }
 
 if (!!document.createElementNS && !!document.createElementNS('http://www.w3.org/2000/svg', "svg").createSVGRect){
