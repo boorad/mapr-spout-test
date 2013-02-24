@@ -160,38 +160,54 @@ g.Chart = function(){
             // get totals first - double traversal, sigh.
             for( i in that.data ) {
                 if( that.data.hasOwnProperty(i) ) {
-                    that.totalValue++;
+                    that.totalValue = that.totalValue + that.data[i];
                 }
             }
             that.rScale = d3.scale.pow().exponent(0.5)
-                .domain([0,that.totalValue/2]).range([1,90]);
+                .domain([0,that.totalValue/5]).range([1,90]);
             that.radiusScale = function(n){ return that.rScale(Math.abs(n)); };
 
             // Builds the nodes data array from the original data
-            //for (var i=0; i < this.data.length; i++) {
-            var i=0;
             if( !that.data ) return true;
-            $.each( that.data, function(word, cnt) {
+            var data = that.clone(that.data); // local copy
+            var dataLen = 0;
+            for( i in data ) {
+                if( that.data.hasOwnProperty(i) ) dataLen++;
+            }
+            console.log("nodes len", that.nodes.length);
+
+            // first, traverse existing nodes
+            for(var i=0; i<that.nodes.length; i++) {
+                if( !that.nodes[i] ) continue;
                 var o = that.nodes[i];
-                if( !o || o.name != word || o.value != cnt ) {
-                    changed = true;
-                    if( o ) {
-                        o.value = cnt;
-                        o.radius = that.radiusScale(cnt);
-                        that.nodes[i] = o;
-                    } else {
-                        var out = {
-                            id: i,
-                            radius: that.radiusScale(cnt),
-                            value: cnt,
-                            name: word
-                        }
-                        that.nodes[i] = out;
+
+                if( data[o.word] ) { // in both
+                    if( parseInt(data[o.word]) !== parseInt(o.cnt) ) {
+                        // new value
+                        console.log("changed", o.word, o.cnt, data[o.word]);
+                        that.nodes[i].cnt = data[o.word];
+                        changed = true;
                     }
+                    delete data[o.word]
+                } else { // in nodes but not in data
+                    console.log("removed", o.word, o.cnt);
+                    that.nodes.splice(i,1);
+                    changed = true;
                 }
-                i++;
+            }
+
+            // now go thru anything remaining in data and add to nodes
+            $.each( data, function(word, cnt) {
+                console.log("added", word, cnt);
+                that.nodes.push({
+                    "word"   : word,
+                    "cnt"    : cnt,
+                    "radius" : that.radiusScale(cnt)
+                });
+                changed = true;
             });
-            return i==0 || changed;
+
+            return changed;
         },
 
         data_loop : function() {
@@ -223,7 +239,8 @@ g.Chart = function(){
         render : function() {
             var that = this;
 
-            var circle = this.svg.selectAll("circle").data(that.nodes, ƒ('id'));
+            var circle = this.svg.selectAll("circle")
+                .data(that.nodes, ƒ('word'));
 
             var lft = that.svg[0][0].offsetLeft;
             var top = that.svg[0][0].offsetTop;
@@ -232,7 +249,6 @@ g.Chart = function(){
                 .style("fill", that.fillColor)
                 .style("stroke-width", 1)
                 .style("stroke", that.strokeColor)
-                .call(that.circleAttrs)
                 .on("mouseover",function(d,i) {
                     var el = d3.select(this)
                     var xpos = Number(el.attr('cx')) + lft
@@ -243,9 +259,9 @@ g.Chart = function(){
                         .style('left',xpos+"px")
                         .style('display','block')
                     d3.select("#tooltip .name").
-                        html(that.nameFormat(d.name))
+                        html(that.nameFormat(d.word))
                     d3.select("#tooltip .value")
-                        .html(that.formatNumber(d.value))
+                        .html(that.formatNumber(d.cnt))
                 })
                 .on("mouseout",function(d,i) {
                     d3.select(this)
@@ -254,16 +270,13 @@ g.Chart = function(){
                     d3.select("#tooltip")
                         .style('display','none')});
 
+            circle.transition().duration(200)
+                .attr("r", ƒ('radius'));
+
             circle.exit().transition().duration(300).remove();
-            circle.call(that.circleAttrs);
 
             this.circle = circle;
 
-        },
-
-        circleAttrs : function(circles) {
-            circles
-                .attr("r", ƒ('radius'));
         },
 
         loop : function() {
@@ -380,6 +393,10 @@ g.Chart = function(){
                 s = s.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
                 return  negativePrefix + s + suffix + negativeSuffix;
             }
+        },
+
+        clone : function(obj) {
+            return jQuery.extend(true, {}, obj);
         }
     }
 };
