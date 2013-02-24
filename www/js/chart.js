@@ -170,11 +170,6 @@ g.Chart = function(){
             // Builds the nodes data array from the original data
             if( !that.data ) return true;
             var data = that.clone(that.data); // local copy
-            var dataLen = 0;
-            for( i in data ) {
-                if( that.data.hasOwnProperty(i) ) dataLen++;
-            }
-            console.log("nodes len", that.nodes.length);
 
             // first, traverse existing nodes
             for(var i=0; i<that.nodes.length; i++) {
@@ -182,12 +177,13 @@ g.Chart = function(){
                 var o = that.nodes[i];
 
                 if( data[o.word] ) { // in both
-                    if( parseInt(data[o.word]) !== parseInt(o.cnt) ) {
+                    if( parseInt(data[o.word]) != parseInt(o.cnt) ) {
                         // new value
                         console.log("changed", o.word, o.cnt, data[o.word]);
                         that.nodes[i].cnt = data[o.word];
                         changed = true;
                     }
+                    that.nodes[i].radius = that.radiusScale(data[o.word]);
                     delete data[o.word]
                 } else { // in nodes but not in data
                     console.log("removed", o.word, o.cnt);
