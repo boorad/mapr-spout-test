@@ -1,22 +1,51 @@
+body {
+    color: rgb(1,70,127);
+    background-color: rgb(1,70,127);
+}
+
 #container {
     font: 12px Helvetica, "Helvetica Neue", sans-serif;
     margin: 0px auto 22px;
+    padding: 10px;
     clear: both;
-    width: 960px;
-    background-color: #00bfff;
+    width: 980px;
+    height: 938px;
+    background-color: white;
+    background-image:url("../img/lattice.png");
+    background-position: right top;
+    background-size: 90% auto;
+    background-repeat: no-repeat;
 
-    div {
-        display: inline-block;
-        vertical-align: top;
-        h2 {
+    #header {
+        .title {
+            font-size: 2em;
             text-align: center;
-            width: 100%;
-            color: #0000cc;
+            font-weight: bold;
         }
     }
 
-    #names {
-        width: 400px;
+    #sections {
+        div {
+            display: inline-block;
+            vertical-align: top;
+            height: 500px;
+            h2 {
+                font-size: 1.50em;
+                text-align: center;
+                text-shadow: white 0.1em 0.1em 0.2em;
+                width: 100%;
+                background-color: rgba(255,255,255,0.75)
+            }
+        }
+
+        #words svg {
+            background-color: rgba(1,70,127,0.75);
+            border-radius: 20px;
+        }
+
+        #names {
+            width: 400px;
+        }
     }
 }
 

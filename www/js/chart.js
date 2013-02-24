@@ -19,7 +19,7 @@ g.Chart = function(){
         $j : jQuery,
         //defaults
         width           : 550,
-        height          : 850,
+        height          : 550,
         groupPadding    : 10,
         totalValue      : 0,
 
@@ -116,7 +116,7 @@ g.Chart = function(){
             };
 
             this.centerX = this.width / 2;
-            this.centerY = 300;
+            this.centerY = 250;
 
             var svg = d3.select("#words").selectAll("svg").data([0]);
             svg.enter().append("svg")

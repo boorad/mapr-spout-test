@@ -1,17 +1,37 @@
+body {
+  color: #01467f;
+  background-color: #01467f; }
+
 #container {
   font: 12px Helvetica, "Helvetica Neue", sans-serif;
   margin: 0px auto 22px;
+  padding: 10px;
   clear: both;
-  width: 960px;
-  background-color: #00bfff; }
-  #container div {
+  width: 980px;
+  height: 938px;
+  background-color: white;
+  background-image: url("../img/lattice.png");
+  background-position: right top;
+  background-size: 90% auto;
+  background-repeat: no-repeat; }
+  #container #header .title {
+    font-size: 2em;
+    text-align: center;
+    font-weight: bold; }
+  #container #sections div {
     display: inline-block;
-    vertical-align: top; }
-    #container div h2 {
+    vertical-align: top;
+    height: 500px; }
+    #container #sections div h2 {
+      font-size: 1.50em;
       text-align: center;
+      text-shadow: white 0.1em 0.1em 0.2em;
       width: 100%;
-      color: #0000cc; }
-  #container #names {
+      background-color: rgba(255, 255, 255, 0.75); }
+  #container #sections #words svg {
+    background-color: rgba(1, 70, 127, 0.75);
+    border-radius: 20px; }
+  #container #sections #names {
     width: 400px; }
 
 #tooltip {

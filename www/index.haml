@@ -3,14 +3,18 @@
 %html
   %head
     %title MapR Realtime Streaming Demo
-    %link( rel="stylesheet" type="text/css" href="css/chart.css" )
     %link( rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css" )
+    %link( rel="stylesheet" type="text/css" href="css/chart.css" )
   %body
     #container
-      #words
-        %h2 Accompanying Words
-      #names
-        %h2 Twitter Usernames
+      #header
+        .logo
+        .title Streaming Computation - MapR & Storm
+      #sections
+        #words
+          %h2 Other Words in Tweets Containing 'mapr'
+        #names
+          %h2 Twitter Usernames
     #tooltip
       #tt-container
         .name
