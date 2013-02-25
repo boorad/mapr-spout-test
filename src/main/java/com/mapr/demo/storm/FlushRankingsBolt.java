@@ -26,7 +26,7 @@ public class FlushRankingsBolt extends BaseRichBolt {
     private static final long serialVersionUID = 3199927072520036231L;
     public static final Logger log = LoggerFactory.getLogger(FlushRankingsBolt.class);
     private OutputCollector collector;
-    private String type = "unknown";
+    private String type = "unknown.output";
     private final Properties props;
 
     public FlushRankingsBolt(String type) {
@@ -35,7 +35,7 @@ public class FlushRankingsBolt extends BaseRichBolt {
     }
 
     public void execute(Tuple tuple) {
-        Rankings rankings = (Rankings)tuple.getValue(0);
+        Rankings rankings = (Rankings) tuple.getValue(0);
 
         JSONObject json = new JSONObject();
         List<Rankable> ranks = rankings.getRankings();
@@ -60,12 +60,14 @@ public class FlushRankingsBolt extends BaseRichBolt {
     private void flush(JSONObject json) {
         try {
             // write to temp copy and rename to get atomic effect
-            File outputFile = new File(props.getProperty("doc.root"),
-                props.getProperty(type + ".output"));
-            File f = new File(props.getProperty("doc.root"),
-                props.getProperty(type + ".output")+".tmp");
-            Files.write(JSONValue.toJSONString(json), f, Charset.forName("UTF-8"));
-            if (!f.renameTo(outputFile)) {
+            File outputFile = new File(props.getProperty("doc.root"), props.getProperty(type));
+            File tmp = new File(props.getProperty("doc.root"), props.getProperty(type) + ".tmp");
+            if (!outputFile.getParentFile().exists() && !outputFile.getParentFile().mkdirs()) {
+                throw new RuntimeException(String.format("Cannot create output directory %s", outputFile.getParentFile()));
+            }
+
+            Files.write(JSONValue.toJSONString(json), tmp, Charset.forName("UTF-8"));
+            if (!tmp.renameTo(outputFile)) {
                 log.error("Unable to overwrite {} using rename", outputFile);
                 throw new IOException("Cannot overwrite data file");
             }

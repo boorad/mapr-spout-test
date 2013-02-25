@@ -1,11 +1,11 @@
 package com.mapr.demo.storm;
 
-import org.apache.log4j.Logger;
-
 import backtype.storm.tuple.Tuple;
 
 import com.mapr.demo.storm.util.AbstractRankerBolt;
 import com.mapr.demo.storm.util.Rankings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This bolt merges incoming {@link Rankings}.
@@ -17,7 +17,7 @@ import com.mapr.demo.storm.util.Rankings;
 public final class TotalRankingsBolt extends AbstractRankerBolt {
 
     private static final long serialVersionUID = -8447525895532302198L;
-    private static final Logger LOG = Logger.getLogger(TotalRankingsBolt.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TotalRankingsBolt.class);
 
     public TotalRankingsBolt() {
         super();

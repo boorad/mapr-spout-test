@@ -3,8 +3,6 @@ package com.mapr.demo.storm.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
 import backtype.storm.Config;
 import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -12,6 +10,7 @@ import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import org.slf4j.Logger;
 
 /**
  * This abstract bolt provides the basic behavior of bolts that rank objects according to their count.
@@ -73,7 +72,7 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
 
     private void emitRankings(BasicOutputCollector collector) {
         collector.emit(new Values(rankings));
-        getLogger().info("Rankings: " + rankings);
+        getLogger().warn("Rankings: " + rankings);
     }
 
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
