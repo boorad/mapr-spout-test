@@ -28,7 +28,9 @@ public class TweetLogger {
     public static final Logger log = LoggerFactory.getLogger(TweetLogger.class);
 
     /**
-     * @param args
+     * Runs the process that queries twitter and logs the results.
+     *
+     * @param args Arguments include the host where the log catcher is running, the port for same and the twitter query.
      * @throws ServiceException
      * @throws IOException
      */
@@ -36,7 +38,7 @@ public class TweetLogger {
         if (args.length < 3) {
             System.out.println("Usage: java -cp <classpath> "
                     + "com.mapr.demo.twitter.TweetLogger "
-                    + "<catcherhost> <catcherport> <topic>");
+                    + "<catcherhost> <catcherport> <query-for-twitter>");
         }
 
         TweetLogger t = new TweetLogger();
@@ -62,7 +64,6 @@ public class TweetLogger {
             do {
                 result = twitter.search(query);
                 List<Status> tweets = result.getTweets();
-                System.out.println("count: " + tweets.size());
 
                 for (Status tweet : tweets) {
                     String user = tweet.getUser().getScreenName();

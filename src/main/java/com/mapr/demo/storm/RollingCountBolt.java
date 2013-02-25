@@ -55,15 +55,18 @@ public class RollingCountBolt extends BaseRichBolt {
     private OutputCollector collector;
     private NthLastModifiedTimeTracker lastModifiedTracker;
 
-    public RollingCountBolt() {
-        this(DEFAULT_SLIDING_WINDOW_IN_SECONDS, DEFAULT_EMIT_FREQUENCY_IN_SECONDS);
-    }
-
     public RollingCountBolt(int windowLengthInSeconds, int emitFrequencyInSeconds) {
         this.windowLengthInSeconds = windowLengthInSeconds;
         this.emitFrequencyInSeconds = emitFrequencyInSeconds;
         counter = new SlidingWindowCounter<Object>(deriveNumWindowChunksFrom(this.windowLengthInSeconds,
             this.emitFrequencyInSeconds));
+    }
+
+    @Override
+    public Map<String, Object> getComponentConfiguration() {
+        Map<String, Object> conf = new HashMap<String, Object>();
+        conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, emitFrequencyInSeconds);
+        return conf;
     }
 
     private int deriveNumWindowChunksFrom(int windowLengthInSeconds, int windowUpdateFrequencyInSeconds) {
@@ -113,12 +116,5 @@ public class RollingCountBolt extends BaseRichBolt {
 
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declare(new Fields("obj", "count", "actualWindowLengthInSeconds"));
-    }
-
-    @Override
-    public Map<String, Object> getComponentConfiguration() {
-        Map<String, Object> conf = new HashMap<String, Object>();
-        conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, emitFrequencyInSeconds);
-        return conf;
     }
 }
