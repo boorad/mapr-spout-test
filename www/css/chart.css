@@ -1,6 +1,6 @@
 body {
   color: #01467f;
-  background-color: #01467f; }
+  background-color: rgba(1, 70, 127, 0.85); }
 
 #container {
   font: 12px Helvetica, "Helvetica Neue", sans-serif;
@@ -28,11 +28,14 @@ body {
       text-shadow: white 0.1em 0.1em 0.2em;
       width: 100%;
       background-color: rgba(255, 255, 255, 0.75); }
-  #container #sections #words svg {
-    background-color: rgba(1, 70, 127, 0.75);
+  #container #sections svg {
+    background-color: rgba(1, 70, 127, 0.85);
     border-radius: 20px; }
-  #container #sections #names {
-    width: 400px; }
+  #container #sections #words text {
+    pointer-events: none; }
+  #container #sections #users {
+    width: 410px;
+    margin-left: 10px; }
 
 #tooltip {
   display: none;

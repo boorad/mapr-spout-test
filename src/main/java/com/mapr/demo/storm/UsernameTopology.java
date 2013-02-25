@@ -1,10 +1,13 @@
 package com.mapr.demo.storm;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import com.google.common.io.Resources;
 import org.apache.log4j.Logger;
 
 import backtype.storm.Config;
@@ -15,17 +18,18 @@ import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 
+import com.google.common.io.Resources;
 import com.mapr.TailSpout;
 import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
 import com.mapr.storm.streamparser.StreamParserFactory;
 
-public class TweetTopology {
+public class UsernameTopology {
 
-    private static final String FILETYPE = "tweets";
-    private static final String DEFAULT_TOP_N = "150";
+    private static final String FILETYPE = "users";
+    private static final String DEFAULT_TOP_N = "50";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     private static String baseDir = "";
-    public static final Logger Log = Logger.getLogger(TweetTopology.class);
+    public static final Logger Log = Logger.getLogger(UsernameTopology.class);
     private static final String PROPERTIES_FILE = "conf/test.properties";
 
     public static Properties loadProperties() {
@@ -56,7 +60,7 @@ public class TweetTopology {
 
         TopologyBuilder topologyBuilder = new TopologyBuilder();
 
-        Properties props = TweetTopology.loadProperties();
+        Properties props = UsernameTopology.loadProperties();
         boolean remote = Boolean.parseBoolean(props.getProperty("remote"));
         int numSpouts = Integer.parseInt(props.getProperty("spouts"));
         baseDir = props.getProperty("base.directory", DEFAULT_BASE_DIR);
@@ -71,10 +75,8 @@ public class TweetTopology {
         spout.setReliableMode(true);
 
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
-        topologyBuilder.setBolt("tokenizer", new TokenizerBolt(), 1)
-            .shuffleGrouping("mapr_tail_spout");
         topologyBuilder.setBolt("rolling_count", new RollingCountBolt(9,3), 1)
-            .fieldsGrouping("tokenizer", new Fields("word"));
+            .shuffleGrouping("mapr_tail_spout");
         topologyBuilder.setBolt("intermediate_rank",
                 new IntermediateRankingsBolt(top_n), 1)
             .fieldsGrouping("rolling_count", new Fields("obj"));
@@ -97,11 +99,11 @@ public class TweetTopology {
         if (remote) {
             Log.info("Sleeping 1 seconds before submitting topology");
             Thread.sleep(1000);
-            StormSubmitter.submitTopology("mapr-spout-test Tweet Topology",
+            StormSubmitter.submitTopology("mapr-spout-test Username Topology",
                     conf, topologyBuilder.createTopology());
         } else {
             LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology("mapr-spout-test Local Tweet Topology",
+            cluster.submitTopology("mapr-spout-test Local Username Topology",
                     conf, topologyBuilder.createTopology());
 
             // TODO: rest of this is for DEV only

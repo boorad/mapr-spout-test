@@ -26,14 +26,16 @@ public class FlushRankingsBolt extends BaseRichBolt {
     private static final long serialVersionUID = 3199927072520036231L;
     public static final Logger log = LoggerFactory.getLogger(FlushRankingsBolt.class);
     private OutputCollector collector;
+    private String type = "unknown";
     private final Properties props;
 
-    public FlushRankingsBolt() {
+    public FlushRankingsBolt(String type) {
+        this.type = type;
         props = TweetTopology.loadProperties();
     }
 
     public void execute(Tuple tuple) {
-        Rankings rankings = (Rankings) tuple.getValue(0);
+        Rankings rankings = (Rankings)tuple.getValue(0);
 
         JSONObject json = new JSONObject();
         List<Rankable> ranks = rankings.getRankings();
@@ -58,8 +60,10 @@ public class FlushRankingsBolt extends BaseRichBolt {
     private void flush(JSONObject json) {
         try {
             // write to temp copy and rename to get atomic effect
-            File outputFile = new File(props.getProperty("doc.root"), props.getProperty("word.output"));
-            File f = new File(props.getProperty("doc.root"), props.getProperty("word.output")+".tmp");
+            File outputFile = new File(props.getProperty("doc.root"),
+                props.getProperty(type + ".output"));
+            File f = new File(props.getProperty("doc.root"),
+                props.getProperty(type + ".output")+".tmp");
             Files.write(JSONValue.toJSONString(json), f, Charset.forName("UTF-8"));
             if (!f.renameTo(outputFile)) {
                 log.error("Unable to overwrite {} using rename", outputFile);
