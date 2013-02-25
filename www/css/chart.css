@@ -1,6 +1,7 @@
 body {
   color: #01467f;
-  background-color: rgba(1, 70, 127, 0.85); }
+  background-color: rgba(1, 70, 127, 0.85);
+  margin: 0; }
 
 #container {
   font: 12px Helvetica, "Helvetica Neue", sans-serif;

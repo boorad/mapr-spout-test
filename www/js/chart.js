@@ -266,11 +266,19 @@ g.Chart = function(){
             word.transition().duration(200).select("circle")
                 .attr("r", ƒ('radius'));
 
+            //word.transition().duration(200).select("text")
+
             word.exit().transition().duration(300).remove();
 
             var text = g.append("text")
+                .attr("text-anchor", "middle")
                 .attr("dx", ƒ('x'))
-                .attr("dy", ƒ('y'))
+                .attr("dy", ".35em")
+                .attr("display", function(d) {
+                    var ret = false;
+                    if( (d.radius / d.word.length) > 3) ret = true;
+                    return ret ? "inline" : "none";
+                })
                 .text(ƒ('word'));
 
             that.word = word;
