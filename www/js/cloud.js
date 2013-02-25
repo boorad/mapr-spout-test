@@ -2,7 +2,7 @@ var g = g || {};
 
 g.Cloud = function(){
     return {
-        delay : 2000,
+        delay : 5000,
         url : "data/users.json",
         $j : jQuery,
 
