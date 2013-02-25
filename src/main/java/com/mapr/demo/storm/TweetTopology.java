@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 public class TweetTopology {
 
-    private static final String FILETYPE = "tweets.output";
+    private static final String FILETYPE = "tweets";
     private static final String DEFAULT_TOP_N = "150";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     private static String baseDir = "";
