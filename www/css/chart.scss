@@ -4,10 +4,11 @@ body {
     color: rgb(1,70,127);
     background-color: $bg;
     margin: 0;
+    font-family: Helvetica, "Helvetica Neue", sans-serif;
+    font-size: 12px;
 }
 
 #container {
-    font: 12px Helvetica, "Helvetica Neue", sans-serif;
     margin: 0px auto 22px;
     padding: 10px;
     clear: both;
