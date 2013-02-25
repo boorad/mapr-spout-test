@@ -17,21 +17,21 @@ public class TokenizerBolt extends BaseRichBolt {
 
     private static final long serialVersionUID = -7548234692935382708L;
     private Twokenizer twokenizer = new Twokenizer();
-    private OutputCollector _collector;
+    private OutputCollector collector;
 
     @SuppressWarnings("rawtypes")
     public void prepare(Map stormConf, TopologyContext context,
             OutputCollector collector) {
-        this._collector = collector;
+        this.collector = collector;
     }
 
     public void execute(Tuple tuple) {
         String tweet = tuple.getString(0);
         List<String> tokens = twokenizer.twokenize(tweet);
         for (String token: tokens) {
-            _collector.emit(tuple, new Values(token));
+            collector.emit(tuple, new Values(token));
         }
-        _collector.ack(tuple);
+        collector.ack(tuple);
     }
 
     public void declareOutputFields(OutputFieldsDeclarer declarer) {

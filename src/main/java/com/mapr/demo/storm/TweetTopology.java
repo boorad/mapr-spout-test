@@ -5,7 +5,6 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import com.google.common.io.Resources;
-import org.apache.log4j.Logger;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -18,13 +17,15 @@ import backtype.storm.tuple.Fields;
 import com.mapr.TailSpout;
 import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
 import com.mapr.storm.streamparser.StreamParserFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TweetTopology {
 
     private static final String DEFAULT_TOP_N = "150";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     private static String baseDir = "";
-    public static final Logger Log = Logger.getLogger(TweetTopology.class);
+    public static final Logger log = LoggerFactory.getLogger(TweetTopology.class);
     private static final String PROPERTIES_FILE = "conf/test.properties";
 
     public static Properties loadProperties() {
@@ -34,9 +35,14 @@ public class TweetTopology {
             props.load(base);
             base.close();
 
-            FileInputStream in = new FileInputStream(PROPERTIES_FILE);
-            props.load(in);
-            in.close();
+            File propFile = new File(PROPERTIES_FILE);
+            if (propFile.exists()) {
+                log.debug("Adding additional properties from {}", propFile.getCanonicalPath());
+
+                FileInputStream in = new FileInputStream(PROPERTIES_FILE);
+                props.load(in);
+                in.close();
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -48,10 +54,10 @@ public class TweetTopology {
     public static void main(String[] args) throws AlreadyAliveException,
             InvalidTopologyException, InterruptedException {
 
-        Log.info("---------------------");
-        Log.info("------STARTING-------");
-        Log.info("---------------------");
-        Log.info("Building topology");
+        log.info("---------------------");
+        log.info("------STARTING-------");
+        log.info("---------------------");
+        log.info("Building topology");
 
         TopologyBuilder topologyBuilder = new TopologyBuilder();
 
@@ -85,7 +91,7 @@ public class TweetTopology {
         Config conf = new Config();
         conf.setDebug(true);
 
-        Log.info("topology built.");
+        log.info("topology built.");
 
 /*
         // TODO: properties file
@@ -94,7 +100,7 @@ public class TweetTopology {
         conf.setMaxTaskParallelism(500);
 */
         if (remote) {
-            Log.info("Sleeping 1 seconds before submitting topology");
+            log.info("Sleeping 1 seconds before submitting topology");
             Thread.sleep(1000);
             StormSubmitter.submitTopology("mapr-spout-test Topology", conf,
                     topologyBuilder.createTopology());
@@ -106,14 +112,9 @@ public class TweetTopology {
             // TODO: rest of this is for DEV only
             Thread.sleep(600000);
 
-            Log.info("DONE");
-            try {
-                cluster.shutdown();
-                System.exit(0);
-            } catch (Exception e) {
-                Log.error("Cluster Shutdown Error");
-            }
-
+            log.info("DONE");
+            cluster.shutdown();
+            System.exit(0);
         }
 
     }

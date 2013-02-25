@@ -3,8 +3,6 @@ package com.mapr.demo.twitter;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import twitter4j.FilterQuery;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -22,17 +20,19 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.ServiceException;
 import com.googlecode.protobuf.pro.duplex.PeerInfo;
 import com.mapr.franz.catcher.Client;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TweetLogger {
 
-    public static final Logger log = Logger.getLogger(TweetLogger.class);
+    public static final Logger log = LoggerFactory.getLogger(TweetLogger.class);
 
     /**
      * @param args
      * @throws ServiceException
      * @throws IOException
      */
-    public static void main(String[] args) throws IOException, ServiceException {
+    public static void main(String[] args) throws IOException, ServiceException, TwitterException {
         if (args.length < 3) {
             System.out.println("Usage: java -cp <classpath> "
                     + "com.mapr.demo.twitter.TweetLogger "
@@ -40,17 +40,14 @@ public class TweetLogger {
         }
 
         TweetLogger t = new TweetLogger();
-        t.query(args[2], args[0], Integer.parseInt(args[1]));
+        Client logger = new Client(Lists.newArrayList(new PeerInfo(args[0], Integer.parseInt(args[1]))));
+        t.query(args[2], logger);
         t.stream(args[2], args[0], Integer.parseInt(args[1]));
-
     }
 
     @SuppressWarnings("unused")
-    private void query(String query_term, String host, int port)
-            throws IOException, ServiceException {
-
-        // Franz client
-        Client c = new Client(Lists.newArrayList(new PeerInfo(host, port)));
+    private void query(String query_term, Client logger)
+            throws IOException, ServiceException, TwitterException {
 
         // Twitter Client
         Twitter twitter = new TwitterFactory().getInstance();
@@ -65,20 +62,16 @@ public class TweetLogger {
                 System.out.println("count: " + tweets.size());
 
                 for (Status tweet : tweets) {
-                    c.sendMessage("users", tweet.getUser().getScreenName());
-                    c.sendMessage("tweets", tweet.getText());
+                    String user = tweet.getUser().getScreenName();
+                    String content = tweet.getText();
+                    log.debug("User {} tweeted {}", user, content);
+                    logger.sendMessage("users", user);
+                    logger.sendMessage("tweets", content);
+
                 }
             } while ((query = result.nextQuery()) != null);
-        } catch (TwitterException te) {
-            te.printStackTrace();
-            System.out.println("Failed to search tweets: " + te.getMessage());
-            System.exit(-1);
-        } catch (Throwable t) {
-            System.out.println(t);
-            System.exit(-1);
         } finally {
-            c.close();
-            System.exit(0);
+            logger.close();
         }
 
     }
@@ -86,13 +79,8 @@ public class TweetLogger {
     private class FranzStreamer implements StatusListener {
         private Client c;
 
-        public FranzStreamer(String host, int port) {
-            try {
-                c = new Client(Lists.newArrayList(new PeerInfo(host, port)));
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(-1);
-            }
+        public FranzStreamer(String host, int port) throws IOException, ServiceException {
+            c = new Client(Lists.newArrayList(new PeerInfo(host, port)));
         }
 
         public void onStatus(Status s) {
@@ -100,8 +88,7 @@ public class TweetLogger {
                 c.sendMessage("users", s.getUser().getScreenName());
                 c.sendMessage("tweets", s.getText());
             } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(-1);
+                log.error("Exception raised while logging status update", e);
             }
         }
 
@@ -124,18 +111,16 @@ public class TweetLogger {
     }
 
 
-    public void stream(String query_term, String host, int port) {
-
+    public void stream(String query_term, String host, int port) throws IOException, ServiceException {
         StatusListener listener = new FranzStreamer(host, port);
 
         TwitterStream ts = new TwitterStreamFactory().getInstance();
         ts.addListener(listener);
 
         FilterQuery fq = new FilterQuery();
-        fq.track(new String[] { query_term });
+        fq.track(new String[]{query_term});
 
         ts.filter(fq);
-
     }
 
 }
