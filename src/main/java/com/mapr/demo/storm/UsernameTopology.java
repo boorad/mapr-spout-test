@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,7 @@ import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 
+import com.google.common.io.Resources;
 import com.mapr.TailSpout;
 import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
 import com.mapr.storm.streamparser.StreamParserFactory;
@@ -30,9 +32,13 @@ public class UsernameTopology {
     public static final Logger Log = Logger.getLogger(UsernameTopology.class);
     private static final String PROPERTIES_FILE = "conf/test.properties";
 
-    private static Properties loadProperties() {
+    public static Properties loadProperties() {
         Properties props = new Properties();
         try {
+            InputStream base = Resources.getResource("base.properties").openStream();
+            props.load(base);
+            base.close();
+
             FileInputStream in = new FileInputStream(PROPERTIES_FILE);
             props.load(in);
             in.close();
