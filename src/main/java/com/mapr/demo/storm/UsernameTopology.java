@@ -26,7 +26,7 @@ import com.mapr.storm.streamparser.StreamParserFactory;
 public class UsernameTopology {
 
     private static final String FILETYPE = "users";
-    private static final String DEFAULT_TOP_N = "20";
+    private static final String DEFAULT_TOP_N = "50";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     private static String baseDir = "";
     public static final Logger Log = Logger.getLogger(UsernameTopology.class);
