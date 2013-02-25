@@ -41,7 +41,10 @@ public class TweetLogger {
 
         TweetLogger t = new TweetLogger();
         Client logger = new Client(Lists.newArrayList(new PeerInfo(args[0], Integer.parseInt(args[1]))));
+        log.info("Connected to log catcher");
+        log.info("Running query");
         t.query(args[2], logger);
+        log.info("Invoking filter stream");
         t.stream(args[2], args[0], Integer.parseInt(args[1]));
     }
 
