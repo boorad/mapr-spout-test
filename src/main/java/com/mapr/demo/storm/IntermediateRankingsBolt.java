@@ -1,12 +1,13 @@
 package com.mapr.demo.storm;
 
-import org.apache.log4j.Logger;
 
 import backtype.storm.tuple.Tuple;
 
 import com.mapr.demo.storm.util.AbstractRankerBolt;
 import com.mapr.demo.storm.util.Rankable;
 import com.mapr.demo.storm.util.RankableObjectWithFields;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This bolt ranks incoming objects by their count.
@@ -18,7 +19,7 @@ import com.mapr.demo.storm.util.RankableObjectWithFields;
 public final class IntermediateRankingsBolt extends AbstractRankerBolt {
 
     private static final long serialVersionUID = -1369800530256637409L;
-    private static final Logger LOG = Logger.getLogger(IntermediateRankingsBolt.class);
+    private static final Logger LOG = LoggerFactory.getLogger(IntermediateRankingsBolt.class);
 
     public IntermediateRankingsBolt() {
         super();

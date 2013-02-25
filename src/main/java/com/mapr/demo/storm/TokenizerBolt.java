@@ -12,26 +12,30 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
 import com.mapr.demo.twitter.Twokenizer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TokenizerBolt extends BaseRichBolt {
 
     private static final long serialVersionUID = -7548234692935382708L;
     private Twokenizer twokenizer = new Twokenizer();
-    private OutputCollector _collector;
+    private OutputCollector collector;
+    private Logger log= LoggerFactory.getLogger(TokenizerBolt.class);
 
     @SuppressWarnings("rawtypes")
     public void prepare(Map stormConf, TopologyContext context,
             OutputCollector collector) {
-        this._collector = collector;
+        this.collector = collector;
     }
 
     public void execute(Tuple tuple) {
         String tweet = tuple.getString(0);
+        log.debug("Tokenizing {}", tweet);
         List<String> tokens = twokenizer.twokenize(tweet);
         for (String token: tokens) {
-            _collector.emit(tuple, new Values(token));
+            collector.emit(tuple, new Values(token));
         }
-        _collector.ack(tuple);
+        collector.ack(tuple);
     }
 
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
