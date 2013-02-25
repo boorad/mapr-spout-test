@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 public class TweetTopology {
 
-    private static final String FILETYPE = "tweets";
+    private static final String FILETYPE = "tweets.output";
     private static final String DEFAULT_TOP_N = "150";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     private static String baseDir = "";
@@ -74,13 +74,15 @@ public class TweetTopology {
         File inDir = new File(baseDir);
         Pattern inPattern = Pattern.compile(FILETYPE);
         TailSpout spout = new TailSpout(spf, statusFile, inDir, inPattern);
-        spout.setReliableMode(true);
+
+        // TODO this should be set to true, but somebody isn't acking tuples correctly and that causes hangs
+        spout.setReliableMode(false);
 
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
         topologyBuilder.setBolt("tokenizer", new TokenizerBolt(), 1)
             .shuffleGrouping("mapr_tail_spout");
-        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(9,3), 1)
-            .fieldsGrouping("tokenizer", new Fields("word"));
+        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(15, 5), 1)
+                .fieldsGrouping("tokenizer", new Fields("word"));
         topologyBuilder.setBolt("intermediate_rank",
                 new IntermediateRankingsBolt(top_n), 1)
             .fieldsGrouping("rolling_count", new Fields("obj"));
