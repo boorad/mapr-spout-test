@@ -1,10 +1,14 @@
 package com.mapr.demo.storm;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import com.google.common.io.Resources;
+import org.apache.log4j.Logger;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
@@ -14,19 +18,18 @@ import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 
+import com.google.common.io.Resources;
 import com.mapr.TailSpout;
 import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
 import com.mapr.storm.streamparser.StreamParserFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class TweetTopology {
+public class UsernameTopology {
 
-    private static final String FILETYPE = "tweets";
-    private static final String DEFAULT_TOP_N = "150";
+    private static final String FILETYPE = "users";
+    private static final String DEFAULT_TOP_N = "50";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     private static String baseDir = "";
-    public static final Logger log = LoggerFactory.getLogger(TweetTopology.class);
+    public static final Logger Log = Logger.getLogger(UsernameTopology.class);
     private static final String PROPERTIES_FILE = "conf/test.properties";
 
     public static Properties loadProperties() {
@@ -36,14 +39,9 @@ public class TweetTopology {
             props.load(base);
             base.close();
 
-            File propFile = new File(PROPERTIES_FILE);
-            if (propFile.exists()) {
-                log.debug("Adding additional properties from {}", propFile.getCanonicalPath());
-
-                FileInputStream in = new FileInputStream(PROPERTIES_FILE);
-                props.load(in);
-                in.close();
-            }
+            FileInputStream in = new FileInputStream(PROPERTIES_FILE);
+            props.load(in);
+            in.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -55,14 +53,14 @@ public class TweetTopology {
     public static void main(String[] args) throws AlreadyAliveException,
             InvalidTopologyException, InterruptedException {
 
-        log.info("---------------------");
-        log.info("------STARTING-------");
-        log.info("---------------------");
-        log.info("Building topology");
+        Log.info("---------------------");
+        Log.info("------STARTING-------");
+        Log.info("---------------------");
+        Log.info("Building topology");
 
         TopologyBuilder topologyBuilder = new TopologyBuilder();
 
-        Properties props = TweetTopology.loadProperties();
+        Properties props = UsernameTopology.loadProperties();
         boolean remote = Boolean.parseBoolean(props.getProperty("remote"));
         int numSpouts = Integer.parseInt(props.getProperty("spouts"));
         baseDir = props.getProperty("base.directory", DEFAULT_BASE_DIR);
@@ -77,10 +75,8 @@ public class TweetTopology {
         spout.setReliableMode(true);
 
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
-        topologyBuilder.setBolt("tokenizer", new TokenizerBolt(), 1)
-            .shuffleGrouping("mapr_tail_spout");
         topologyBuilder.setBolt("rolling_count", new RollingCountBolt(9,3), 1)
-            .fieldsGrouping("tokenizer", new Fields("word"));
+            .shuffleGrouping("mapr_tail_spout");
         topologyBuilder.setBolt("intermediate_rank",
                 new IntermediateRankingsBolt(top_n), 1)
             .fieldsGrouping("rolling_count", new Fields("obj"));
@@ -92,7 +88,7 @@ public class TweetTopology {
         Config conf = new Config();
         conf.setDebug(true);
 
-        log.info("topology built.");
+        Log.info("topology built.");
 
 /*
         // TODO: properties file
@@ -101,21 +97,26 @@ public class TweetTopology {
         conf.setMaxTaskParallelism(500);
 */
         if (remote) {
-            log.info("Sleeping 1 seconds before submitting topology");
+            Log.info("Sleeping 1 seconds before submitting topology");
             Thread.sleep(1000);
-            StormSubmitter.submitTopology("mapr-spout-test Tweet Topology",
+            StormSubmitter.submitTopology("mapr-spout-test Username Topology",
                     conf, topologyBuilder.createTopology());
         } else {
             LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology("mapr-spout-test Local Tweet Topology",
+            cluster.submitTopology("mapr-spout-test Local Username Topology",
                     conf, topologyBuilder.createTopology());
 
             // TODO: rest of this is for DEV only
             Thread.sleep(600000);
 
-            log.info("DONE");
-            cluster.shutdown();
-            System.exit(0);
+            Log.info("DONE");
+            try {
+                cluster.shutdown();
+                System.exit(0);
+            } catch (Exception e) {
+                Log.error("Cluster Shutdown Error");
+            }
+
         }
 
     }

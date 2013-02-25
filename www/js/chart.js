@@ -14,8 +14,7 @@ var g = g || {};
 
 g.Chart = function(){
     return {
-        words_url : "data/words.json",
-        users_url : "data/users.json",
+        words_url : "data/tweets.json",
         $j : jQuery,
         //defaults
         width           : 550,
@@ -130,7 +129,6 @@ g.Chart = function(){
 
                 that.data_loop();
             });
-
         },
 
         getWordData : function(callback) {
@@ -145,7 +143,6 @@ g.Chart = function(){
                     if( changed ) callback();
                 },
                 error : function(jqXHR, status, error) {
-                    //console.error(jqXHR, status, error);
                     that.data = {};
                     callback();
                 }
@@ -179,14 +176,14 @@ g.Chart = function(){
                 if( data[o.word] ) { // in both
                     if( parseInt(data[o.word]) != parseInt(o.cnt) ) {
                         // new value
-                        console.log("changed", o.word, o.cnt, data[o.word]);
+                        //console.log("changed", o.word, o.cnt, data[o.word]);
                         that.nodes[i].cnt = data[o.word];
                         changed = true;
                     }
                     that.nodes[i].radius = that.radiusScale(data[o.word]);
                     delete data[o.word]
                 } else { // in nodes but not in data
-                    console.log("removed", o.word, o.cnt);
+                    //console.log("removed", o.word, o.cnt);
                     that.nodes.splice(i,1);
                     changed = true;
                 }
@@ -194,7 +191,7 @@ g.Chart = function(){
 
             // now go thru anything remaining in data and add to nodes
             $.each( data, function(word, cnt) {
-                console.log("added", word, cnt);
+                //console.log("added", word, cnt);
                 that.nodes.push({
                     "word"   : word,
                     "cnt"    : cnt,
@@ -235,13 +232,16 @@ g.Chart = function(){
         render : function() {
             var that = this;
 
-            var circle = this.svg.selectAll("circle")
-                .data(that.nodes, ƒ('word'));
-
             var lft = that.svg[0][0].offsetLeft;
             var top = that.svg[0][0].offsetTop;
 
-            circle.enter().append("circle")
+            // circles per word
+            var word = this.svg.selectAll(".word")
+                .data(that.nodes, ƒ('word'));
+            var g = word.enter().append("g")
+                .attr("class","word")
+
+            var circle = g.append("circle")
                 .style("fill", that.fillColor)
                 .style("stroke-width", 1)
                 .style("stroke", that.strokeColor)
@@ -266,13 +266,36 @@ g.Chart = function(){
                     d3.select("#tooltip")
                         .style('display','none')});
 
-            circle.transition().duration(200)
+            word.transition().duration(200).select("circle")
                 .attr("r", ƒ('radius'));
 
-            circle.exit().transition().duration(300).remove();
+            word.exit().transition().duration(300).remove();
 
-            this.circle = circle;
+            var text = g.append("text")
+                .attr("dx", ƒ('x'))
+                .attr("dy", ƒ('y'))
+                .text(ƒ('word'));
 
+            this.word = word;
+/*
+            // circle labels
+            var text = this.svg.append("g")
+                .attr("class","labels")
+                .selectAll("text")
+                .data(that.nodes, ƒ('word'));
+
+            text.enter().append("text")
+                .attr("dx", ƒ('px'))
+                .attr("dy", ƒ('py'))
+                .text(ƒ('word'));
+
+            text.attr("transform", function(d) {
+                console.log(d);
+                return "translate(" + d.px + "," + d.py + ")";
+            });
+
+            this.text = text;
+*/
         },
 
         loop : function() {
@@ -303,11 +326,17 @@ g.Chart = function(){
                 .charge(that.defaultCharge)
                 .friction(0.9)
                 .on("tick", function(e){
-                    that.circle
+                    that.word.select("circle")
                         .each(that.totalSort(e.alpha))
                         .each(that.buoyancy(e.alpha))
                         .attr("cx", ƒ('x'))
                         .attr("cy", ƒ('y'));
+                    that.word.select("text")
+                        .attr("transform", function(d) {
+                            return "translate(" + d.x + "," + d.y + ")";
+                        });
+
+
                 })
                 .start();
         },
@@ -398,8 +427,12 @@ g.Chart = function(){
 };
 
 g.ready = function() {
+    // bubble chart
     g.c = new g.Chart();
     g.c.init();
+    // username cloud
+    g.u = new g.Cloud();
+    g.u.init();
 }
 
 if (!!document.createElementNS && !!document.createElementNS('http://www.w3.org/2000/svg', "svg").createSVGRect){

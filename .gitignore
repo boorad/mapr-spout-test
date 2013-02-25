@@ -13,6 +13,7 @@
 target/*
 log/*
 data/*
+www/data
 www/data/*
 conf/*.properties
 
