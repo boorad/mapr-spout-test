@@ -1,6 +1,6 @@
 body {
   color: #01467f;
-  background-color: rgba(1, 70, 127, 0.75); }
+  background-color: rgba(1, 70, 127, 0.85); }
 
 #container {
   font: 12px Helvetica, "Helvetica Neue", sans-serif;
@@ -31,6 +31,8 @@ body {
   #container #sections svg {
     background-color: rgba(1, 70, 127, 0.85);
     border-radius: 20px; }
+  #container #sections #words text {
+    pointer-events: none; }
   #container #sections #users {
     width: 410px;
     margin-left: 10px; }

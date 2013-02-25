@@ -106,7 +106,8 @@ g.Cloud = function(){
 
             that.layout = d3.layout.cloud()
                 .font("Helvetica")
-                .spiral("archimedean")
+                //.spiral("archimedean")
+                .spiral("rectangular")
                 .timeInterval(10)
                 .size([that.width, that.height])
                 .fontSize(function(d) { return that.fontSize(+d.value); })

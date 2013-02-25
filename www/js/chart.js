@@ -232,13 +232,16 @@ g.Chart = function(){
         render : function() {
             var that = this;
 
-            var circle = this.svg.selectAll("circle")
-                .data(that.nodes, ƒ('word'));
-
             var lft = that.svg[0][0].offsetLeft;
             var top = that.svg[0][0].offsetTop;
 
-            circle.enter().append("circle")
+            // circles per word
+            var word = this.svg.selectAll(".word")
+                .data(that.nodes, ƒ('word'));
+            var g = word.enter().append("g")
+                .attr("class","word")
+
+            var circle = g.append("circle")
                 .style("fill", that.fillColor)
                 .style("stroke-width", 1)
                 .style("stroke", that.strokeColor)
@@ -263,13 +266,36 @@ g.Chart = function(){
                     d3.select("#tooltip")
                         .style('display','none')});
 
-            circle.transition().duration(200)
+            word.transition().duration(200).select("circle")
                 .attr("r", ƒ('radius'));
 
-            circle.exit().transition().duration(300).remove();
+            word.exit().transition().duration(300).remove();
 
-            this.circle = circle;
+            var text = g.append("text")
+                .attr("dx", ƒ('x'))
+                .attr("dy", ƒ('y'))
+                .text(ƒ('word'));
 
+            this.word = word;
+/*
+            // circle labels
+            var text = this.svg.append("g")
+                .attr("class","labels")
+                .selectAll("text")
+                .data(that.nodes, ƒ('word'));
+
+            text.enter().append("text")
+                .attr("dx", ƒ('px'))
+                .attr("dy", ƒ('py'))
+                .text(ƒ('word'));
+
+            text.attr("transform", function(d) {
+                console.log(d);
+                return "translate(" + d.px + "," + d.py + ")";
+            });
+
+            this.text = text;
+*/
         },
 
         loop : function() {
@@ -300,11 +326,17 @@ g.Chart = function(){
                 .charge(that.defaultCharge)
                 .friction(0.9)
                 .on("tick", function(e){
-                    that.circle
+                    that.word.select("circle")
                         .each(that.totalSort(e.alpha))
                         .each(that.buoyancy(e.alpha))
                         .attr("cx", ƒ('x'))
                         .attr("cy", ƒ('y'));
+                    that.word.select("text")
+                        .attr("transform", function(d) {
+                            return "translate(" + d.x + "," + d.y + ")";
+                        });
+
+
                 })
                 .start();
         },

@@ -1,6 +1,8 @@
+$bg: rgba(1,70,127,0.85);
+
 body {
     color: rgb(1,70,127);
-    background-color: rgba(1,70,127, 0.75);
+    background-color: $bg;
 }
 
 #container {
@@ -39,8 +41,12 @@ body {
         }
 
         svg {
-            background-color: rgba(1,70,127,0.85);
+            background-color: $bg;
             border-radius: 20px;
+        }
+
+        #words text {
+            pointer-events: none;
         }
 
         #users {
