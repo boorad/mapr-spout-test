@@ -38,7 +38,7 @@ public class TwokenizerTest {
     @Test
     public void punctuation() {
         Twokenizer t = new Twokenizer();
-        List<String> tokens = t.twokenize("... !! !!!!!! ( ) '");
+        List<String> tokens = t.twokenize("... !! !!!!!! ( ) ' -");
         for( String token : tokens ) log.debug(token);
         assertTrue(tokens.size() == 0);
     }
