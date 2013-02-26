@@ -275,9 +275,10 @@ g.Chart = function(){
                 .attr("dx", ƒ('x'))
                 .attr("dy", ".35em")
                 .attr("display", function(d) {
-                    var ret = false;
-                    if( (d.radius / d.word.length) > 3) ret = true;
-                    return ret ? "inline" : "none";
+                    if( (d.radius / d.word.length) > 3)
+                        return "inline"
+                    else
+                        return "none";
                 })
                 .text(ƒ('word'));
 
