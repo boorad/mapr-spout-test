@@ -1,14 +1,10 @@
 package com.mapr.demo.storm.util;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public class Rankings implements Serializable, Iterable<Rankable> {
 
@@ -16,7 +12,7 @@ public class Rankings implements Serializable, Iterable<Rankable> {
 
     private final int maxSize;
 
-    private final SortedSet<Rankable> data = Collections.synchronizedSortedSet(new TreeSet<Rankable>(Ordering.natural().reverse()));
+    private final Map<Object, Rankable> data = Collections.synchronizedMap(new HashMap<Object, Rankable>());
 
     public Rankings(int topN) {
         if (topN < 1) {
@@ -29,27 +25,23 @@ public class Rankings implements Serializable, Iterable<Rankable> {
      * @return the number (size) of ranked objects this instance is currently holding
      */
     public int size() {
-        return data.size();
+        return Math.min(maxSize, data.size());
     }
 
     public Collection<Rankable> getRankings() {
-        return Lists.newArrayList(data);
-    }
-
-    public void addAll(Rankings other) {
-        for (Rankable r : other.data) {
-            add(r);
+        SortedSet<Rankable> r = Sets.newTreeSet(Ordering.natural().reverse());
+        r.addAll(data.values());
+        while (r.size() > maxSize) {
+            r.remove(r.last());
         }
+        return r;
     }
 
     public void add(Rankable r) {
         if (r.getCount() > 0) {
-            data.add(r);
-            while (data.size() > maxSize) {
-                data.remove(data.last());
-            }
+            data.put(r.getObject(), r);
         } else {
-            data.remove(r);
+            data.remove(r.getObject());
         }
     }
 
@@ -63,6 +55,6 @@ public class Rankings implements Serializable, Iterable<Rankable> {
      * @return an Iterator.
      */
     public Iterator<Rankable> iterator() {
-        return data.iterator();
+        return getRankings().iterator();
     }
 }
