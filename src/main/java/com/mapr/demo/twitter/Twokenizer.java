@@ -240,6 +240,7 @@ public class Twokenizer implements Serializable {
                if (!token.isEmpty()
                        && !token.matches(punctChars)
                        && !token.matches(entity)
+                       && token.length() > 1
                        ) {
                    finalTokens.add(token);
                }
