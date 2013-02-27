@@ -2,6 +2,7 @@ package com.mapr.demo.storm;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -21,6 +22,7 @@ public class TokenizerBolt extends BaseRichBolt {
     private Twokenizer twokenizer = new Twokenizer();
     private OutputCollector collector;
     private Logger log= LoggerFactory.getLogger(TokenizerBolt.class);
+    private AtomicInteger tupleCount = new AtomicInteger();
 
     @SuppressWarnings("rawtypes")
     public void prepare(Map stormConf, TopologyContext context,
@@ -29,10 +31,14 @@ public class TokenizerBolt extends BaseRichBolt {
     }
 
     public void execute(Tuple tuple) {
+        int n = tupleCount.incrementAndGet();
+        if (n % 1000 == 0) {
+            log.warn("Processed {} tweets", n);
+        }
         String tweet = tuple.getString(0);
         log.debug("Tokenizing {}", tweet);
         List<String> tokens = twokenizer.twokenize(tweet);
-        for (String token: tokens) {
+        for (String token : tokens) {
             collector.emit(tuple, new Values(token));
         }
         collector.ack(tuple);
