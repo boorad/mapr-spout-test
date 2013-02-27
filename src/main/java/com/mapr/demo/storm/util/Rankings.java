@@ -1,9 +1,9 @@
 package com.mapr.demo.storm.util;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.SortedSet;
+import java.util.*;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
@@ -14,7 +14,7 @@ public class Rankings implements Serializable {
 
     private final int maxSize;
 
-    private final SortedSet<Rankable> data = Sets.newTreeSet(Ordering.natural().reverse());
+    private final SortedSet<Rankable> data = Collections.synchronizedSortedSet(new TreeSet<Rankable>(Ordering.natural().reverse()));
 
     public Rankings(int topN) {
         if (topN < 1) {
@@ -30,8 +30,8 @@ public class Rankings implements Serializable {
         return data.size();
     }
 
-    public List<Rankable> getRankings() {
-        return Lists.newArrayList(data);
+    public Collection<Rankable> getRankings() {
+        return data;
     }
 
     public void addAll(Rankings other) {

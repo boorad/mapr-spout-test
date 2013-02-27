@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -38,7 +39,7 @@ public class FlushRankingsBolt extends BaseRichBolt {
         Rankings rankings = (Rankings) tuple.getValue(0);
 
         JSONObject json = new JSONObject();
-        List<Rankable> ranks = rankings.getRankings();
+        Collection<Rankable> ranks = rankings.getRankings();
         for (Rankable r : ranks) {
             json.put((String) r.getObject(), r.getCount());
         }
