@@ -16,12 +16,6 @@ import com.google.common.collect.Lists;
  *
  */
 public class RankableCount implements Rankable<RankableCount>, Serializable {
-    private final static AtomicInteger classCounter = new AtomicInteger();
-
-    private static final String toStringSeparator = "|";
-
-    // this id is used to distinguish different instances to avoid collapsing values in Hashmaps and such.
-    private final int id = classCounter.incrementAndGet();
     private final Object obj;
     private final long count;
     private final ImmutableList<Object> fields;
@@ -74,22 +68,22 @@ public class RankableCount implements Rankable<RankableCount>, Serializable {
     public int compareTo(RankableCount other) {
         int r = Long.compare(this.getCount(), other.getCount());
         if (r == 0) {
-            // we try really hard to not return 0 if objects are different
-            return this.id - other.id;
+            // we try to not return 0 if objects are different
+            return this.obj.hashCode() - this.obj.hashCode();
         } else {
             return r;
         }
     }
 
     public boolean equals(Object o) {
-        if (this == obj) {
+        if (this == o) {
             return true;
         }
         if (!(o instanceof RankableCount)) {
             return false;
         }
         RankableCount other = (RankableCount) o;
-        return id == other.id && obj.equals(other.obj) && count == other.count;
+        return obj.equals(other.obj) && count == other.count;
     }
 
     public int hashCode() {
