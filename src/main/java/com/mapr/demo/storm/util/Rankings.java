@@ -1,5 +1,6 @@
 package com.mapr.demo.storm.util;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
 import java.io.Serializable;
@@ -32,7 +33,7 @@ public class Rankings implements Serializable, Iterable<Rankable> {
     }
 
     public Collection<Rankable> getRankings() {
-        return data;
+        return Lists.newArrayList(data);
     }
 
     public void addAll(Rankings other) {
