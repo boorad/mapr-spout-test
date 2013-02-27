@@ -19,22 +19,14 @@ public final class TotalRankingsBolt extends AbstractRankerBolt {
     private static final long serialVersionUID = -8447525895532302198L;
     private static final Logger LOG = LoggerFactory.getLogger(TotalRankingsBolt.class);
 
-    public TotalRankingsBolt() {
-        super();
-    }
-
     public TotalRankingsBolt(int topN) {
         super(topN);
-    }
-
-    public TotalRankingsBolt(int topN, int emitFrequencyInSeconds) {
-        super(topN, emitFrequencyInSeconds);
     }
 
     @Override
     public void updateRankingsWithTuple(Tuple tuple) {
         Rankings rankingsToBeMerged = (Rankings) tuple.getValue(0);
-        super.getRankings().updateWith(rankingsToBeMerged);
+        super.getRankings().addAll(rankingsToBeMerged);
     }
 
     public Logger getLogger() {

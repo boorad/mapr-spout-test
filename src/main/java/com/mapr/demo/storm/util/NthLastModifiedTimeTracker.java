@@ -19,37 +19,21 @@ public class NthLastModifiedTimeTracker {
 
     private final CircularFifoBuffer lastModifiedTimesMillis;
 
-    public NthLastModifiedTimeTracker(int numTimesToTrack) {
-        if (numTimesToTrack < 1) {
-            throw new IllegalArgumentException("numTimesToTrack must be greater than zero (you requested "
-                + numTimesToTrack + ")");
+    public NthLastModifiedTimeTracker(int slots) {
+        if (slots < 1) {
+            throw new IllegalArgumentException("slots must be greater than zero (you requested " + slots + ")");
         }
-        lastModifiedTimesMillis = new CircularFifoBuffer(numTimesToTrack);
-        initLastModifiedTimesMillis();
-    }
-
-    private void initLastModifiedTimesMillis() {
-        long nowCached = now();
+        lastModifiedTimesMillis = new CircularFifoBuffer(slots);
+        long t = Time.currentTimeMillis();
         for (int i = 0; i < lastModifiedTimesMillis.maxSize(); i++) {
-            lastModifiedTimesMillis.add(Long.valueOf(nowCached));
+            lastModifiedTimesMillis.add(Long.valueOf(t));
         }
     }
 
-    private long now() {
-        return Time.currentTimeMillis();
-    }
-
-    public int secondsSinceOldestModification() {
-        long modifiedTimeMillis = ((Long) lastModifiedTimesMillis.get()).longValue();
-        return (int) ((now() - modifiedTimeMillis) / MILLIS_IN_SEC);
-    }
-
-    public void markAsModified() {
-        updateLastModifiedTime();
-    }
-
-    private void updateLastModifiedTime() {
-        lastModifiedTimesMillis.add(now());
+    public int recordModAndReturnOldest() {
+        long modifiedTimeMillis = (Long) lastModifiedTimesMillis.get();
+        lastModifiedTimesMillis.add(Time.currentTimeMillis());
+        return (int) ((Time.currentTimeMillis() - modifiedTimeMillis + MILLIS_IN_SEC / 2) / MILLIS_IN_SEC);
     }
 
 }

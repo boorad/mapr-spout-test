@@ -55,7 +55,6 @@ public final class SlidingWindowCounter<T> implements Serializable {
 
     private SlotBasedCounter<T> objCounter;
     private int headSlot;
-    private int tailSlot;
     private int windowLengthInSlots;
 
     public SlidingWindowCounter(int windowLengthInSlots) {
@@ -67,7 +66,6 @@ public final class SlidingWindowCounter<T> implements Serializable {
         this.objCounter = new SlotBasedCounter<T>(this.windowLengthInSlots);
 
         this.headSlot = 0;
-        this.tailSlot = slotAfter(headSlot);
     }
 
     public void incrementCount(T obj) {
@@ -81,22 +79,14 @@ public final class SlidingWindowCounter<T> implements Serializable {
      * successfully processed "upstream" (i.e. by the caller). Knowing this we will start counting any subsequent
      * objects within the next "chunk" of the sliding window.
      *
-     * @return
+     * @return The counts as they are before slipping to the next slot.
      */
     public Map<T, Long> getCountsThenAdvanceWindow() {
         Map<T, Long> counts = objCounter.getCounts();
+        int tailSlot = (headSlot + 1) % windowLengthInSlots;
         objCounter.wipeSlot(tailSlot);
-        advanceHead();
-        return counts;
-    }
-
-    private void advanceHead() {
         headSlot = tailSlot;
-        tailSlot = slotAfter(tailSlot);
-    }
-
-    private int slotAfter(int slot) {
-        return (slot + 1) % windowLengthInSlots;
+        return counts;
     }
 
 }

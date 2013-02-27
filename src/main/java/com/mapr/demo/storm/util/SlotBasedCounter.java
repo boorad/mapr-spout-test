@@ -1,98 +1,89 @@
 package com.mapr.demo.storm.util;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multiset;
+
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This class provides per-slot counts of the occurrences of objects.
- *
+ * <p/>
  * It can be used, for instance, as a building block for implementing sliding window counting of objects.
  *
- * @param <T>
- *            The type of those objects we want to count.
+ * @param <T> The type of those objects we want to count.
  */
 public final class SlotBasedCounter<T> implements Serializable {
 
     private static final long serialVersionUID = 4858185737378394432L;
 
-    private final Map<T, long[]> objToCounts = new HashMap<T, long[]>();
+    private final Map<T, long[]> counts = Maps.newHashMap();
+    private final Multiset<T> zeroCountKeys = HashMultiset.create();
+
     private final int numSlots;
 
     public SlotBasedCounter(int numSlots) {
         if (numSlots <= 0) {
             throw new IllegalArgumentException("Number of slots must be greater than zero (you requested " + numSlots
-                + ")");
+                    + ")");
         }
         this.numSlots = numSlots;
     }
 
-    public void incrementCount(T obj, int slot) {
-        long[] counts = objToCounts.get(obj);
-        if (counts == null) {
-            counts = new long[this.numSlots];
-            objToCounts.put(obj, counts);
+    public void incrementCount(T key, int slot) {
+        long[] slots = this.counts.get(key);
+        if (slots == null) {
+            slots = new long[numSlots];
+            counts.put(key, slots);
         }
-        counts[slot]++;
-    }
-
-    public long getCount(T obj, int slot) {
-        long[] counts = objToCounts.get(obj);
-        if (counts == null) {
-            return 0;
-        }
-        else {
-            return counts[slot];
-        }
+        slots[slot]++;
+        zeroCountKeys.remove(key);
     }
 
     public Map<T, Long> getCounts() {
         Map<T, Long> result = new HashMap<T, Long>();
-        for (T obj : objToCounts.keySet()) {
-            result.put(obj, computeTotalCount(obj));
+        for (T obj : counts.keySet()) {
+            result.put(obj, totalCount(obj));
         }
         return result;
     }
 
-    private long computeTotalCount(T obj) {
-        long[] curr = objToCounts.get(obj);
+    private long totalCount(T obj) {
+        long[] curr = counts.get(obj);
         long total = 0;
-        for (long l : curr) {
-            total += l;
+        for (long k : curr) {
+            total += k;
         }
         return total;
     }
 
     /**
      * Reset the slot count of any tracked objects to zero for the given slot.
-     *
+     * <p/>
      * <em>Implementation detail:</em> As an optimization this method will also remove any object from the counter whose
-     * total count is zero after the wipe of the slot (to free up memory).
+     * total count is zero after the wipe of the slot (to free up memory).  Zero count objects are retained for a window
+     * length to allow our caller to propagate the zero before we delete the object.
      *
-     * @param slot
+     * @param slot Which slot in the ring buffer should be cleared.
      */
     public void wipeSlot(int slot) {
-        Set<T> objToBeRemoved = new HashSet<T>();
-        for (T obj : objToCounts.keySet()) {
-            resetSlotCountToZero(obj, slot);
-            if (shouldBeRemovedFromCounter(obj)) {
-                objToBeRemoved.add(obj);
+        for (T key : counts.keySet()) {
+            counts.get(key)[slot] = 0;
+
+            if (totalCount(key) == 0) {
+                zeroCountKeys.add(key);
             }
         }
-        for (T obj : objToBeRemoved) {
-            objToCounts.remove(obj);
+
+        // if a key has been zero for some time, we forget it.  We have to keep it
+        // around for a while, however, so the zero count propagates downstream.
+        for (T key : zeroCountKeys.elementSet()) {
+            if (zeroCountKeys.count(key) > numSlots) {
+                counts.remove(key);
+                zeroCountKeys.remove(key);
+            }
         }
     }
-
-    private void resetSlotCountToZero(T obj, int slot) {
-        long[] counts = objToCounts.get(obj);
-        counts[slot] = 0;
-    }
-
-    private boolean shouldBeRemovedFromCounter(T obj) {
-        return computeTotalCount(obj) == 0;
-    }
-
 }
