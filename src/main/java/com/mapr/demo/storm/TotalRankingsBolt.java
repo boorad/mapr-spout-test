@@ -24,7 +24,7 @@ public final class TotalRankingsBolt extends AbstractRankerBolt {
     private static final Logger LOG = LoggerFactory.getLogger(TotalRankingsBolt.class);
 
     public TotalRankingsBolt(int topN) {
-        super(topN);
+        super(topN, true);
     }
 
     @Override
