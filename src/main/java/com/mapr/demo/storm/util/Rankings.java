@@ -1,22 +1,18 @@
 package com.mapr.demo.storm.util;
 
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
+
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-import com.google.common.collect.Lists;
+public class Rankings implements Serializable, Iterable<Rankable> {
 
-public class Rankings implements Serializable {
-
-    private static final long serialVersionUID = -1549827195410578903L;
-    private static final int DEFAULT_COUNT = 10;
+    private static final long serialVersionUID = -1549827195410578904L;
 
     private final int maxSize;
-    private final List<Rankable> rankedItems = Lists.newArrayList();
 
-    public Rankings() {
-        this(DEFAULT_COUNT);
-    }
+    private final Map<Object, Rankable> data = Collections.synchronizedMap(new HashMap<Object, Rankable>());
 
     public Rankings(int topN) {
         if (topN < 1) {
@@ -26,68 +22,39 @@ public class Rankings implements Serializable {
     }
 
     /**
-     * @return the maximum possible number (size) of ranked objects this instance can hold
-     */
-    public int maxSize() {
-        return maxSize;
-    }
-
-    /**
      * @return the number (size) of ranked objects this instance is currently holding
      */
     public int size() {
-        return rankedItems.size();
+        return Math.min(maxSize, data.size());
     }
 
-    public List<Rankable> getRankings() {
-        return Lists.newArrayList(rankedItems);
-    }
-
-    public void updateWith(Rankings other) {
-        for (Rankable r : other.getRankings()) {
-            updateWith(r);
+    public Collection<Rankable> getRankings() {
+        SortedSet<Rankable> r = Sets.newTreeSet(Ordering.natural().reverse());
+        r.addAll(data.values());
+        while (r.size() > maxSize) {
+            r.remove(r.last());
         }
+        return r;
     }
 
-    public void updateWith(Rankable r) {
-        addOrReplace(r);
-        rerank();
-        shrinkRankingsIfNeeded();
-    }
-
-    private void addOrReplace(Rankable r) {
-        Integer rank = findRankOf(r);
-        if (rank != null) {
-            rankedItems.set(rank, r);
-        }
-        else {
-            rankedItems.add(r);
-        }
-    }
-
-    private Integer findRankOf(Rankable r) {
-        Object tag = r.getObject();
-        for (int rank = 0; rank < rankedItems.size(); rank++) {
-            Object cur = rankedItems.get(rank).getObject();
-            if (cur.equals(tag)) {
-                return rank;
-            }
-        }
-        return null;
-    }
-
-    private void rerank() {
-        Collections.sort(rankedItems);
-        Collections.reverse(rankedItems);
-    }
-
-    private void shrinkRankingsIfNeeded() {
-        if (rankedItems.size() > maxSize) {
-            rankedItems.remove(maxSize);
+    public void add(Rankable r) {
+        if (r.getCount() > 0) {
+            data.put(r.getObject(), r);
+        } else {
+            data.remove(r.getObject());
         }
     }
 
     public String toString() {
-        return rankedItems.toString();
+        return data.toString();
+    }
+
+    /**
+     * Returns an iterator over a set of elements of type T.
+     *
+     * @return an Iterator.
+     */
+    public Iterator<Rankable> iterator() {
+        return getRankings().iterator();
     }
 }

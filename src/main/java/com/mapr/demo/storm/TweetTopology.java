@@ -80,16 +80,13 @@ public class TweetTopology {
 
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
         topologyBuilder.setBolt("tokenizer", new TokenizerBolt(), 1)
-            .shuffleGrouping("mapr_tail_spout");
-        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(15, 5), 1)
+                .shuffleGrouping("mapr_tail_spout");
+        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(Integer.parseInt(props.getProperty("window", "3600")), 5), 1)
                 .fieldsGrouping("tokenizer", new Fields("word"));
-        topologyBuilder.setBolt("intermediate_rank",
-                new IntermediateRankingsBolt(top_n), 1)
-            .fieldsGrouping("rolling_count", new Fields("obj"));
-        topologyBuilder.setBolt("total_rank", new TotalRankingsBolt(top_n), 1)
-            .globalGrouping("intermediate_rank");
+        topologyBuilder.setBolt("intermediate_rank", new IntermediateRankingsBolt(top_n), 1)
+                .globalGrouping("rolling_count");
         topologyBuilder.setBolt("flush", new FlushRankingsBolt(FILETYPE), 1)
-            .globalGrouping("total_rank");
+                .globalGrouping("intermediate_rank");
 
         Config conf = new Config();
         conf.setDebug(true);

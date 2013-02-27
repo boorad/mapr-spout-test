@@ -1,6 +1,8 @@
 package com.mapr.demo.storm.util;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import backtype.storm.tuple.Tuple;
 
@@ -13,15 +15,12 @@ import com.google.common.collect.Lists;
  * This class can be used, for instance, to track the number of occurrences of an object in a Storm topology.
  *
  */
-public class RankableObjectWithFields implements Rankable {
-
-    private static final String toStringSeparator = "|";
-
+public class RankableCount implements Rankable<RankableCount>, Serializable {
     private final Object obj;
     private final long count;
     private final ImmutableList<Object> fields;
 
-    public RankableObjectWithFields(Object obj, long count, Object... otherFields) {
+    public RankableCount(Object obj, long count, Object... otherFields) {
         if (obj == null) {
             throw new IllegalArgumentException("The object must not be null");
         }
@@ -39,16 +38,16 @@ public class RankableObjectWithFields implements Rankable {
      *
      * This method expects the object to be ranked in the first field (index 0) of the provided tuple, and the number of
      * occurrences of the object (its count) in the second field (index 1). Any further fields in the tuple will be
-     * extracted and tracked, too. These fields can be accessed via {@link RankableObjectWithFields#getFields()}.
+     * extracted and tracked, too. These fields can be accessed via {@link RankableCount#getFields()}.
      *
-     * @param tuple
-     * @return
+     * @param tuple  The tuple to convert into a Rankable.
+     * @return A usable Rankable object
      */
-    public static RankableObjectWithFields from(Tuple tuple) {
+    public static Rankable from(Tuple tuple) {
         List<Object> otherFields = Lists.newArrayList(tuple.getValues());
         Object obj = otherFields.remove(0);
         Long count = (Long) otherFields.remove(0);
-        return new RankableObjectWithFields(obj, count, otherFields.toArray());
+        return new RankableCount(obj, count, otherFields.toArray());
     }
 
     public Object getObject() {
@@ -66,32 +65,27 @@ public class RankableObjectWithFields implements Rankable {
         return fields;
     }
 
-    public int compareTo(Rankable other) {
-        long delta = this.getCount() - other.getCount();
-        if (delta > 0) {
-            return 1;
-        }
-        else if (delta < 0) {
-            return -1;
-        }
-        else {
-            return 0;
+    public int compareTo(RankableCount other) {
+        int r = Long.compare(this.getCount(), other.getCount());
+        if (r == 0) {
+            // we try to not return 0 if objects are different
+            return this.obj.hashCode() - this.obj.hashCode();
+        } else {
+            return r;
         }
     }
 
-    @Override
     public boolean equals(Object o) {
-        if (this == obj) {
+        if (this == o) {
             return true;
         }
-        if (!(o instanceof RankableObjectWithFields)) {
+        if (!(o instanceof RankableCount)) {
             return false;
         }
-        RankableObjectWithFields other = (RankableObjectWithFields) o;
+        RankableCount other = (RankableCount) o;
         return obj.equals(other.obj) && count == other.count;
     }
 
-    @Override
     public int hashCode() {
         int result = 17;
         int countHash = (int) (count ^ (count >>> 32));
@@ -101,16 +95,19 @@ public class RankableObjectWithFields implements Rankable {
     }
 
     public String toString() {
-        StringBuffer buf = new StringBuffer();
-        buf.append("[");
+        StringBuilder buf = new StringBuilder();
+        buf.append("[key=");
         buf.append(obj);
-        buf.append(toStringSeparator);
+        buf.append(", count=");
         buf.append(count);
+        buf.append(", fields={");
+        String sep = "";
         for (Object field : fields) {
-            buf.append(toStringSeparator);
+            buf.append(sep);
             buf.append(field);
+            sep = ",";
         }
-        buf.append("]");
+        buf.append("}]");
         return buf.toString();
     }
 }

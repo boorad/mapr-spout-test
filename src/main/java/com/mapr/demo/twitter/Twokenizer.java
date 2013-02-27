@@ -39,9 +39,6 @@ package com.mapr.demo.twitter;
  * July 2011
  */
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
@@ -146,7 +143,7 @@ public class Twokenizer implements Serializable {
 /*
    // For special patterns
    public Vector<String> splitToken(String token) {
-//       Matcher contractionsMatcher  = Contractions.matcher(token);
+       Matcher contractionsMatcher  = Contractions.matcher(token);
        Vector<String> smallTokens = new Vector<String>();
 
        while (contractionsMatcher.find()) {
@@ -239,14 +236,16 @@ public class Twokenizer implements Serializable {
            zippedStr.addAll(splitGoods.lastElement());
        }
 
+       // split based on special patterns (like contractions) and remove all tokens are empty
        Vector<String> finalTokens = new Vector<String>();
        for (String token: zippedStr) {
            token = token.trim();
            if (
                    !token.isEmpty()              // no empty tokens
-                   && !token.matches(punctSeq) // no punctuation
+                   && !token.matches(punctSeq)   // no punctuation
                    && !token.matches(entity)     // no entities
                    && !stopWord(token)           // no stop words
+                   && token.length() > 1
                    ) {
                finalTokens.add(token);
            }
