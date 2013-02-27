@@ -21,7 +21,7 @@ public final class IntermediateRankingsBolt extends AbstractRankerBolt {
     private static final Logger LOG = LoggerFactory.getLogger(IntermediateRankingsBolt.class);
 
     public IntermediateRankingsBolt(int topN) {
-        super(topN, false);
+        super(topN, true);
     }
 
     @Override
