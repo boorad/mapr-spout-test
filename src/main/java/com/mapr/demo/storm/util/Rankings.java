@@ -10,8 +10,7 @@ import com.google.common.collect.Sets;
 
 public class Rankings implements Serializable {
 
-    private static final long serialVersionUID = -1549827195410578903L;
-    private static final int DEFAULT_COUNT = 10;
+    private static final long serialVersionUID = -1549827195410578904L;
 
     private final int maxSize;
 
@@ -44,6 +43,9 @@ public class Rankings implements Serializable {
     public void add(Rankable r) {
         if (r.getCount() > 0) {
             data.add(r);
+            while (data.size() > maxSize) {
+                data.remove(data.last());
+            }
         } else {
             data.remove(r);
         }
