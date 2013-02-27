@@ -81,7 +81,7 @@ public class TweetTopology {
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
         topologyBuilder.setBolt("tokenizer", new TokenizerBolt(), 1)
             .shuffleGrouping("mapr_tail_spout");
-        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(15, 5), 1)
+        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(300, 20), 1)
                 .fieldsGrouping("tokenizer", new Fields("word"));
         topologyBuilder.setBolt("intermediate_rank",
                 new IntermediateRankingsBolt(top_n), 1)

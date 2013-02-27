@@ -1,15 +1,5 @@
 package com.mapr.demo.storm;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.regex.Pattern;
-
-import org.apache.log4j.Logger;
-
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.StormSubmitter;
@@ -17,18 +7,21 @@ import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
-
 import com.google.common.io.Resources;
 import com.mapr.TailSpout;
 import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
 import com.mapr.storm.streamparser.StreamParserFactory;
+import org.apache.log4j.Logger;
+
+import java.io.*;
+import java.util.Properties;
+import java.util.regex.Pattern;
 
 public class UsernameTopology {
 
     private static final String FILETYPE = "users";
     private static final String DEFAULT_TOP_N = "50";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
-    private static String baseDir = "";
     public static final Logger Log = Logger.getLogger(UsernameTopology.class);
     private static final String PROPERTIES_FILE = "conf/test.properties";
 
@@ -47,6 +40,7 @@ public class UsernameTopology {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return props;
     }
 
@@ -63,7 +57,7 @@ public class UsernameTopology {
         Properties props = UsernameTopology.loadProperties();
         boolean remote = Boolean.parseBoolean(props.getProperty("remote"));
         int numSpouts = Integer.parseInt(props.getProperty("spouts"));
-        baseDir = props.getProperty("base.directory", DEFAULT_BASE_DIR);
+        String baseDir = props.getProperty("base.directory", DEFAULT_BASE_DIR);
         int top_n = Integer.parseInt(props.getProperty("top.n", DEFAULT_TOP_N));
 
         // init the MapR Tail Spout
@@ -75,15 +69,13 @@ public class UsernameTopology {
         spout.setReliableMode(true);
 
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
-        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(9,3), 1)
-            .shuffleGrouping("mapr_tail_spout");
-        topologyBuilder.setBolt("intermediate_rank",
-                new IntermediateRankingsBolt(top_n), 1)
-            .fieldsGrouping("rolling_count", new Fields("obj"));
+        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(300, 15), 1).shuffleGrouping("mapr_tail_spout");
+        topologyBuilder.setBolt("intermediate_rank", new IntermediateRankingsBolt(top_n), 1)
+                .fieldsGrouping("rolling_count", new Fields("obj"));
         topologyBuilder.setBolt("total_rank", new TotalRankingsBolt(top_n), 1)
-            .globalGrouping("intermediate_rank");
+                .globalGrouping("intermediate_rank");
         topologyBuilder.setBolt("flush", new FlushRankingsBolt(FILETYPE), 1)
-            .globalGrouping("total_rank");
+                .globalGrouping("total_rank");
 
         Config conf = new Config();
         conf.setDebug(true);
