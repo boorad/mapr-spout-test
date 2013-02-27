@@ -66,12 +66,15 @@ public class RankableCount implements Rankable<RankableCount>, Serializable {
     }
 
     public int compareTo(RankableCount other) {
-        int r = Long.compare(this.getCount(), other.getCount());
+        //int r = Long.compare(this.getCount(), other.getCount());
+        long r = this.getCount() - other.getCount();
         if (r == 0) {
             // we try to not return 0 if objects are different
             return this.obj.hashCode() - this.obj.hashCode();
+        } else if( r > 0 ) {
+            return 1;
         } else {
-            return r;
+            return -1;
         }
     }
 
