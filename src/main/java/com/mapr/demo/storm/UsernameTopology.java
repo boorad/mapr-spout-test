@@ -68,7 +68,7 @@ public class UsernameTopology {
         spout.setReliableMode(true);
 
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
-        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(Integer.parseInt(props.getProperty("window", "3600")), 5), 1)
+        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(Integer.parseInt(props.getProperty("window", "600")), 5), 1)
                 .shuffleGrouping("mapr_tail_spout");
         topologyBuilder.setBolt("intermediate_rank", new IntermediateRankingsBolt(top_n), 1)
                 .globalGrouping("rolling_count");
