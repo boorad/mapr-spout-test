@@ -1,14 +1,15 @@
 package com.mapr.demo.storm.util;
 
-import java.io.Serializable;
-import java.util.*;
-
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 
-public class Rankings implements Serializable {
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+public class Rankings implements Serializable, Iterable<Rankable> {
 
     private static final long serialVersionUID = -1549827195410578904L;
 
@@ -53,5 +54,14 @@ public class Rankings implements Serializable {
 
     public String toString() {
         return data.toString();
+    }
+
+    /**
+     * Returns an iterator over a set of elements of type T.
+     *
+     * @return an Iterator.
+     */
+    public Iterator<Rankable> iterator() {
+        return data.iterator();
     }
 }
