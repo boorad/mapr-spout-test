@@ -102,15 +102,18 @@ public class RankableCount implements Rankable<RankableCount>, Serializable {
 
     public String toString() {
         StringBuilder buf = new StringBuilder();
-        buf.append("[");
+        buf.append("[key=");
         buf.append(obj);
-        buf.append(toStringSeparator);
+        buf.append(", count=");
         buf.append(count);
+        buf.append(", fields={");
+        String sep = "";
         for (Object field : fields) {
-            buf.append(toStringSeparator);
+            buf.append(sep);
             buf.append(field);
+            sep = ",";
         }
-        buf.append("]");
+        buf.append("}]");
         return buf.toString();
     }
 }
