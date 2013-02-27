@@ -1,6 +1,7 @@
 package com.mapr.demo.storm.util;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import backtype.storm.Config;
@@ -10,6 +11,7 @@ import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 
 /**
@@ -29,16 +31,18 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
     private final int emitFrequencyInSeconds;
     private final int count;
     private final Rankings rankings;
+    protected boolean reportRankings = false;
 
-    public AbstractRankerBolt() {
-        this(DEFAULT_COUNT, DEFAULT_EMIT_FREQUENCY_IN_SECONDS);
+    public AbstractRankerBolt(boolean b) {
+        this(DEFAULT_COUNT, DEFAULT_EMIT_FREQUENCY_IN_SECONDS, b);
     }
 
-    public AbstractRankerBolt(int topN) {
-        this(topN, DEFAULT_EMIT_FREQUENCY_IN_SECONDS);
+    public AbstractRankerBolt(int topN, boolean reportRankings) {
+        this(topN, DEFAULT_EMIT_FREQUENCY_IN_SECONDS, reportRankings);
     }
 
-    public AbstractRankerBolt(int topN, int emitFrequencyInSeconds) {
+    public AbstractRankerBolt(int topN, int emitFrequencyInSeconds, boolean reportRankings) {
+        this.reportRankings = reportRankings;
         if (topN < 1) {
             throw new IllegalArgumentException("topN must be >= 1 (you requested " + topN + ")");
         }
@@ -72,7 +76,16 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
 
     private void emitRankings(BasicOutputCollector collector) {
         collector.emit(new Values(rankings));
-        getLogger().warn("Rankings: " + rankings);
+        if (reportRankings) {
+            List<Rankable> r = Lists.newArrayList();
+            for (Rankable rx : rankings) {
+                r.add(rx);
+                if (r.size() > 20) {
+                    break;
+                }
+            }
+            getLogger().warn("Rankings: " + rankings);
+        }
     }
 
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
