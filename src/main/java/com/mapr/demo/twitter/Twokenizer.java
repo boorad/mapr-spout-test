@@ -39,9 +39,6 @@ package com.mapr.demo.twitter;
  * July 2011
  */
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
@@ -52,14 +49,15 @@ import java.util.regex.Pattern;
 public class Twokenizer implements Serializable {
 
     private static final long serialVersionUID = 5448739505637845004L;
+    //private static final Logger log = LoggerFactory.getLogger(Twokenizer.class);
 
     // This pattern is different from the Scala version
     // '^' is added since Java Regex uses '^word$' for exact matching 'word' in the string 'word',
     // not in the string 'abcword'
-    private static Pattern Contractions = Pattern.compile("(?i)^(\\w+)(n't|'ve|'ll|'d|'re|'s|'m)$");
     private static Pattern Whitespace = Pattern.compile("\\s+");
+    private static Pattern StopWords = Pattern.compile("^('|rt|i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall)$");
 
-    private static String punctChars = "['“\\\".?!,:;]";
+    private static String punctChars = "[“”\\\".?!,:;\\(\\)-]";
     private static String punctSeq = punctChars + "+";
     private static String entity = "&(amp|lt|gt|quot);";
 
@@ -137,6 +135,12 @@ public class Twokenizer implements Serializable {
        return whitespaceMatcher.replaceAll(" ").trim();
    }
 
+   public boolean stopWord(String input) {
+       Matcher matcher = StopWords.matcher(input);
+       return matcher.matches();
+   }
+
+/*
    // For special patterns
    public Vector<String> splitToken(String token) {
        Matcher contractionsMatcher  = Contractions.matcher(token);
@@ -155,6 +159,7 @@ public class Twokenizer implements Serializable {
 
        return smallTokens;
    }
+*/
 
    // simpleTokenize should be called after using squeezeWhitespace()
    public List<String> simpleTokenize(String text) {
@@ -233,42 +238,26 @@ public class Twokenizer implements Serializable {
 
        // split based on special patterns (like contractions) and remove all tokens are empty
        Vector<String> finalTokens = new Vector<String>();
-       for (String str: zippedStr) {
-           Vector<String> tokens = splitToken(str);
-           // only add non-empty tokens
-           for (String token: tokens) {
-               if (!token.isEmpty()
-                       && !token.matches(punctChars)
-                       && !token.matches(entity)
-                       && token.length() > 1
-                       ) {
-                   finalTokens.add(token);
-               }
+       for (String token: zippedStr) {
+           token = token.trim();
+           if (
+                   !token.isEmpty()              // no empty tokens
+                   && !token.matches(punctSeq)   // no punctuation
+                   && !token.matches(entity)     // no entities
+                   && !stopWord(token)           // no stop words
+                   && token.length() > 1
+                   ) {
+               finalTokens.add(token);
            }
        }
 
        return finalTokens;
    }
 
-   // the twokenize method which filters out white spaces before using simpleTokenize()
+   // the twokenize method which filters out white spaces and stop words before
+   // using simpleTokenize()
    public List<String> twokenize(String text) {
        return simpleTokenize(squeezeWhitespace(text));
    }
 
-   public static void main(String[] args) throws IOException {
-       Twokenizer twokenizer = new Twokenizer();
-       BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-       System.out.print("> ");
-       // Read user input
-       String inputStr = br.readLine();
-       while (!inputStr.equals("")) {
-            List<String> tokens = twokenizer.twokenize(inputStr);
-            for (String token: tokens) {
-                System.out.print(token + " ");
-            }
-            System.out.print("\n> ");
-            inputStr = br.readLine();
-       }
-       br.close();
-   }
 }

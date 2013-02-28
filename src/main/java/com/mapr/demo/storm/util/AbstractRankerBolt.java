@@ -84,7 +84,7 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
                     break;
                 }
             }
-            getLogger().warn("Rankings: " + rankings);
+            //getLogger().warn("Rankings: " + rankings);
         }
     }
 

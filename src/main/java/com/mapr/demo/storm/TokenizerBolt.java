@@ -36,7 +36,7 @@ public class TokenizerBolt extends BaseRichBolt {
             log.warn("Processed {} tweets", n);
         }
         String tweet = tuple.getString(0);
-        log.debug("Tokenizing {}", tweet);
+        //log.debug("Tokenizing {}", tweet);
         List<String> tokens = twokenizer.twokenize(tweet);
         for (String token : tokens) {
             collector.emit(tuple, new Values(token));

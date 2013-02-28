@@ -3,34 +3,33 @@ $bg: rgba(1,70,127,0.85);
 body {
     color: rgb(1,70,127);
     background-color: $bg;
+    margin: 0;
+    font-family: Helvetica, "Helvetica Neue", sans-serif;
+    font-size: 12px;
 }
 
 #container {
-    font: 12px Helvetica, "Helvetica Neue", sans-serif;
     margin: 0px auto 22px;
     padding: 10px;
     clear: both;
     width: 980px;
-    height: 938px;
+    height: 1000px;
     background-color: white;
     background-image:url("../img/lattice.png");
     background-position: right top;
     background-size: 90% auto;
     background-repeat: no-repeat;
 
-    #header {
-        .title {
-            font-size: 2em;
-            text-align: center;
-            font-weight: bold;
-        }
+    .title {
+        font-size: 2em;
+        text-align: center;
+        font-weight: bold;
     }
 
     #sections {
         div {
             display: inline-block;
             vertical-align: top;
-            height: 500px;
             h2 {
                 font-size: 1.50em;
                 text-align: center;
@@ -43,6 +42,7 @@ body {
         svg {
             background-color: $bg;
             border-radius: 20px;
+            height: 500px;
         }
 
         #words text {

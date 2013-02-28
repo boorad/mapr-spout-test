@@ -14,7 +14,8 @@ var g = g || {};
 
 g.Chart = function(){
     return {
-        words_url : "data/tweets.json",
+        delay : 5000,
+        url : "data/tweets.json",
         $j : jQuery,
         //defaults
         width           : 550,
@@ -134,7 +135,7 @@ g.Chart = function(){
         getWordData : function(callback) {
             var that = this;
             $.ajax({
-                url : that.words_url,
+                url : that.url,
                 dataType : "json",
                 cache : false,
                 success : function(json, status, jqXHR) {
@@ -213,16 +214,12 @@ g.Chart = function(){
                         that.render();
                         that.force
                             .on("tick", function(e){
-                                that.circle
-                                    .each(that.totalSort(e.alpha))
-                                    .each(that.buoyancy(0))
-                                    .attr("cx", ƒ('x'))
-                                    .attr("cy", ƒ('y'));
+                                that.tick(e, 0);
                             })
                             .start();
                     });
                 }
-            }, 1000);
+            }, that.delay);
         },
 
         pause_data_loop : function() {
@@ -269,33 +266,23 @@ g.Chart = function(){
             word.transition().duration(200).select("circle")
                 .attr("r", ƒ('radius'));
 
+            //word.transition().duration(200).select("text")
+
             word.exit().transition().duration(300).remove();
 
             var text = g.append("text")
+                .attr("text-anchor", "middle")
                 .attr("dx", ƒ('x'))
-                .attr("dy", ƒ('y'))
+                .attr("dy", ".35em")
+                .attr("display", function(d) {
+                    if( (d.radius / d.word.length) > 3)
+                        return "inline"
+                    else
+                        return "none";
+                })
                 .text(ƒ('word'));
 
-            this.word = word;
-/*
-            // circle labels
-            var text = this.svg.append("g")
-                .attr("class","labels")
-                .selectAll("text")
-                .data(that.nodes, ƒ('word'));
-
-            text.enter().append("text")
-                .attr("dx", ƒ('px'))
-                .attr("dy", ƒ('py'))
-                .text(ƒ('word'));
-
-            text.attr("transform", function(d) {
-                console.log(d);
-                return "translate(" + d.px + "," + d.py + ")";
-            });
-
-            this.text = text;
-*/
+            that.word = word;
         },
 
         loop : function() {
@@ -326,19 +313,22 @@ g.Chart = function(){
                 .charge(that.defaultCharge)
                 .friction(0.9)
                 .on("tick", function(e){
-                    that.word.select("circle")
-                        .each(that.totalSort(e.alpha))
-                        .each(that.buoyancy(e.alpha))
-                        .attr("cx", ƒ('x'))
-                        .attr("cy", ƒ('y'));
-                    that.word.select("text")
-                        .attr("transform", function(d) {
-                            return "translate(" + d.x + "," + d.y + ")";
-                        });
-
-
+                    that.tick(e, e.alpha);
                 })
                 .start();
+        },
+
+        tick : function(e, buoyancy) {
+            var that = this;
+            that.word.select("circle")
+                .each(that.totalSort(e.alpha))
+                .each(that.buoyancy(buoyancy))
+                .attr("cx", ƒ('x'))
+                .attr("cy", ƒ('y'));
+            that.word.select("text")
+                .attr("transform", function(d) {
+                    return "translate(" + d.x + "," + d.y + ")";
+                });
         },
 
         // --------------------------------------------------------------------

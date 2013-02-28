@@ -70,7 +70,7 @@ public class TweetTopology {
 
         // init the MapR Tail Spout
         StreamParserFactory spf = new CountBlobStreamParserFactory();
-        File statusFile = new File(baseDir + "/status");
+        File statusFile = new File(baseDir + "/status_" + FILETYPE);
         File inDir = new File(baseDir);
         Pattern inPattern = Pattern.compile(FILETYPE);
         TailSpout spout = new TailSpout(spf, statusFile, inDir, inPattern);
@@ -108,14 +108,14 @@ public class TweetTopology {
             LocalCluster cluster = new LocalCluster();
             cluster.submitTopology("mapr-spout-test Local Tweet Topology",
                     conf, topologyBuilder.createTopology());
-
+/*
             // TODO: rest of this is for DEV only
             Thread.sleep(600000);
 
             log.info("DONE");
             cluster.shutdown();
             System.exit(0);
+*/
         }
-
     }
 }

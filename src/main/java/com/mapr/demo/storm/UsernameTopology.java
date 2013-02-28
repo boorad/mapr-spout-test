@@ -61,14 +61,14 @@ public class UsernameTopology {
 
         // init the MapR Tail Spout
         StreamParserFactory spf = new CountBlobStreamParserFactory();
-        File statusFile = new File(baseDir + "/status");
+        File statusFile = new File(baseDir + "/status_" + FILETYPE);
         File inDir = new File(baseDir);
         Pattern inPattern = Pattern.compile(FILETYPE);
         TailSpout spout = new TailSpout(spf, statusFile, inDir, inPattern);
         spout.setReliableMode(true);
 
         topologyBuilder.setSpout("mapr_tail_spout", spout, numSpouts);
-        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(Integer.parseInt(props.getProperty("window", "3600")), 5), 1)
+        topologyBuilder.setBolt("rolling_count", new RollingCountBolt(Integer.parseInt(props.getProperty("window", "7200")), 5), 1)
                 .shuffleGrouping("mapr_tail_spout");
         topologyBuilder.setBolt("intermediate_rank", new IntermediateRankingsBolt(top_n), 1)
                 .globalGrouping("rolling_count");
@@ -96,17 +96,14 @@ public class UsernameTopology {
             cluster.submitTopology("mapr-spout-test Local Username Topology",
                     conf, topologyBuilder.createTopology());
 
+/*
             // TODO: rest of this is for DEV only
             Thread.sleep(600000);
 
-            Log.info("DONE");
-            try {
-                cluster.shutdown();
-                System.exit(0);
-            } catch (Exception e) {
-                Log.error("Cluster Shutdown Error");
-            }
-
+            log.info("DONE");
+            cluster.shutdown();
+            System.exit(0);
+*/
         }
 
     }
