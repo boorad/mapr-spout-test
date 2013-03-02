@@ -19,7 +19,7 @@ import com.mapr.demo.storm.util.SlidingWindowCounter;
 import com.mapr.demo.storm.util.TupleHelpers;
 
 /**
- * This bolt performs rolling counts of incoming objects, i.e. sliding window based counting.
+ * This bolt performs moving window counts of incoming objects.
  *
  * The bolt is configured by two parameters, the length of the sliding window in seconds (which influences the output
  * data of the bolt, i.e. how it will count objects) and the emit frequency in seconds (which influences how often the
@@ -27,24 +27,17 @@ import com.mapr.demo.storm.util.TupleHelpers;
  * minutes and the emit frequency to one minute, then the bolt will output the latest five-minute sliding window every
  * minute.
  *
- * The bolt emits a rolling count tuple per object, consisting of the object itself, its latest rolling count, and the
- * actual duration of the sliding window. The latter is included in case the expected sliding window length (as
- * configured by the user) is different from the actual length, e.g. due to high system load. Note that the actual
- * window length is tracked and calculated for the window, and not individually for each object within a window.
+ * Each time a tuple arrives, the count for the 0'th element of that tuple is incremented and the current count and
+ * age for that key is emitted.  This guarantees any downstream consumer sees updates as soon as they happen.
  *
- * Note: During the startup phase you will usually observe that the bolt warns you about the actual sliding window
- * length being smaller than the expected length. This behavior is expected and is caused by the way the sliding window
- * counts are initially "loaded up". You can safely ignore this warning during startup (e.g. you will see this warning
- * during the first ~ five minutes of startup time if the window length is set to five minutes).
- *
+ * Each time a tick happens, the entire table is output.  This guarantees that any downstream consumer sees correct
+ * counts for symbols not seen since the last tick.  Counts that go to zero are emitted once as zeros and then
+ * removed from further consideration until that key reappears.
  */
 public class RollingCountBolt extends BaseRichBolt {
 
     private static final long serialVersionUID = 5537727428628598519L;
     private static final Logger LOG = Logger.getLogger(RollingCountBolt.class);
-
-    private static final String WINDOW_LENGTH_WARNING_TEMPLATE = "Actual window length is %d seconds when it should be %d seconds"
-        + " (you can safely ignore this warning during the startup phase)";
 
     private final SlidingWindowCounter<Object> counter;
     private final int windowLengthInSeconds;
@@ -78,28 +71,24 @@ public class RollingCountBolt extends BaseRichBolt {
     public void execute(Tuple tuple) {
         if (TupleHelpers.isTickTuple(tuple)) {
             LOG.info("Received tick tuple, triggering emit of current window counts");
-            emitCurrentWindowCounts();
-        }
-        else {
-            counter.incrementCount(tuple.getValue(0));
+            int actualWindowLengthInSeconds = lastModifiedTracker.recordModAndReturnOldest();
+
+            SlidingWindowCounter.DatedMap<Object> counts = counter.getCountsAdvanceWindow();
+            for (Object key : counts.keySet()) {
+                if (counts.age(key) > 0) {
+                    collector.emit(new Values(key, counts.get(key), actualWindowLengthInSeconds, counts.age(key)));
+                }
+            }
+        } else {
+            Object key = tuple.getValue(0);
+            counter.incrementCount(key);
+            int actualWindowLengthInSeconds = lastModifiedTracker.recordModAndReturnOldest();
+            collector.emit(new Values(key, counter.get(key), actualWindowLengthInSeconds, counter.age(key)));
             collector.ack(tuple);
         }
     }
 
-    private void emitCurrentWindowCounts() {
-        int actualWindowLengthInSeconds = lastModifiedTracker.recordModAndReturnOldest();
-
-        if (actualWindowLengthInSeconds < windowLengthInSeconds) {
-            LOG.warn(String.format(WINDOW_LENGTH_WARNING_TEMPLATE, actualWindowLengthInSeconds, windowLengthInSeconds));
-        }
-
-        Map<Object, Long> counts = counter.getCountsThenAdvanceWindow();
-        for (Object key : counts.keySet()) {
-            collector.emit(new Values(key, counts.get(key), actualWindowLengthInSeconds));
-        }
-    }
-
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("obj", "count", "actualWindowLengthInSeconds"));
+        declarer.declare(new Fields("obj", "count", "actualWindowLengthInSeconds", "age"));
     }
 }
