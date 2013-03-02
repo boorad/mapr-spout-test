@@ -4,6 +4,7 @@ package com.mapr.demo.storm;
 import backtype.storm.tuple.Tuple;
 
 import com.mapr.demo.storm.util.AbstractRankerBolt;
+import com.mapr.demo.storm.util.Rankable;
 import com.mapr.demo.storm.util.RankableCount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,9 @@ public final class IntermediateRankingsBolt extends AbstractRankerBolt {
 
     @Override
     public void updateRankingsWithTuple(Tuple tuple) {
-        getRankings().add(RankableCount.from(tuple));
+        Rankable r = RankableCount.from(tuple);
+        LOG.warn("Update {}", r);
+        getRankings().add(r);
     }
 
     @Override

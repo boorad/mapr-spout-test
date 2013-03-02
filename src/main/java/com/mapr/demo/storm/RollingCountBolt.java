@@ -3,8 +3,6 @@ package com.mapr.demo.storm;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
 import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -17,6 +15,8 @@ import backtype.storm.tuple.Values;
 import com.mapr.demo.storm.util.NthLastModifiedTimeTracker;
 import com.mapr.demo.storm.util.SlidingWindowCounter;
 import com.mapr.demo.storm.util.TupleHelpers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This bolt performs moving window counts of incoming objects.
@@ -37,7 +37,7 @@ import com.mapr.demo.storm.util.TupleHelpers;
 public class RollingCountBolt extends BaseRichBolt {
 
     private static final long serialVersionUID = 5537727428628598519L;
-    private static final Logger LOG = Logger.getLogger(RollingCountBolt.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RollingCountBolt.class);
 
     private final SlidingWindowCounter<Object> counter;
     private final int windowLengthInSeconds;
@@ -77,6 +77,7 @@ public class RollingCountBolt extends BaseRichBolt {
             for (Object key : counts.keySet()) {
                 if (counts.age(key) > 0) {
                     collector.emit(new Values(key, counts.get(key), actualWindowLengthInSeconds, counts.age(key)));
+                    LOG.warn("Decay of {} to {}", key, counts.get(key));
                 }
             }
         } else {
@@ -84,6 +85,7 @@ public class RollingCountBolt extends BaseRichBolt {
             counter.incrementCount(key);
             int actualWindowLengthInSeconds = lastModifiedTracker.recordModAndReturnOldest();
             collector.emit(new Values(key, counter.get(key), actualWindowLengthInSeconds, counter.age(key)));
+            LOG.warn("Bump of {} to {}", key, counter.get(key));
             collector.ack(tuple);
         }
     }

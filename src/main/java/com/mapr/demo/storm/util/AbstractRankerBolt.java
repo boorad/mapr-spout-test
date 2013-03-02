@@ -25,7 +25,7 @@ import java.util.Map;
 public abstract class AbstractRankerBolt extends BaseBasicBolt {
 
     private static final long serialVersionUID = 4931640198501530202L;
-    private static final int DEFAULT_EMIT_FREQUENCY_IN_SECONDS = 2;
+    private static final int DEFAULT_EMIT_FREQUENCY_IN_SECONDS = 5;
 
     private final int emitFrequencyInSeconds;
     private final Rankings rankings;
