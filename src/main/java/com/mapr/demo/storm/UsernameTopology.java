@@ -12,7 +12,10 @@ import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
 import com.mapr.storm.streamparser.StreamParserFactory;
 import org.apache.log4j.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -24,27 +27,21 @@ public class UsernameTopology {
     public static final Logger Log = Logger.getLogger(UsernameTopology.class);
     private static final String PROPERTIES_FILE = "conf/test.properties";
 
-    public static Properties loadProperties() {
+    public static Properties loadProperties() throws IOException {
         Properties props = new Properties();
-        try {
-            InputStream base = Resources.getResource("base.properties").openStream();
-            props.load(base);
-            base.close();
+        InputStream base = Resources.getResource("base.properties").openStream();
+        props.load(base);
+        base.close();
 
-            FileInputStream in = new FileInputStream(PROPERTIES_FILE);
-            props.load(in);
-            in.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        FileInputStream in = new FileInputStream(PROPERTIES_FILE);
+        props.load(in);
+        in.close();
 
         return props;
     }
 
     public static void main(String[] args) throws AlreadyAliveException,
-            InvalidTopologyException, InterruptedException {
+            InvalidTopologyException, InterruptedException, IOException {
 
         Log.info("---------------------");
         Log.info("------STARTING-------");

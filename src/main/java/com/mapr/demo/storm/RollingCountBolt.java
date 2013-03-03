@@ -76,14 +76,14 @@ public class RollingCountBolt extends BaseRichBolt {
             SlidingWindowCounter.DatedMap<Object> counts = counter.getCountsAdvanceWindow();
             for (Object key : counts.keySet()) {
                 collector.emit(new Values(key, counts.get(key), actualWindowLengthInSeconds, counts.age(key)));
-                LOG.warn("Decay of {} to {}", key, counts.get(key));
+                LOG.debug("Periodic dump {} at {}", key, counts.get(key));
             }
         } else {
             Object key = tuple.getValue(0);
             counter.incrementCount(key);
             int actualWindowLengthInSeconds = lastModifiedTracker.recordModAndReturnOldest();
+            LOG.debug("Bump of {} to {}", key, counter.get(key));
             collector.emit(new Values(key, counter.get(key), actualWindowLengthInSeconds, counter.age(key)));
-            LOG.warn("Bump of {} to {}", key, counter.get(key));
             collector.ack(tuple);
         }
     }
