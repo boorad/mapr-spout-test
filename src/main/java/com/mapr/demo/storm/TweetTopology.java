@@ -27,7 +27,7 @@ public class TweetTopology {
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     private static String baseDir = "";
     public static final Logger log = LoggerFactory.getLogger(TweetTopology.class);
-    private static final String PROPERTIES_FILE = "conf/test.properties";
+    private static final String PROPERTIES_FILE = "../conf/test.properties";
 
     public static Properties loadProperties() {
         Properties props = new Properties();
