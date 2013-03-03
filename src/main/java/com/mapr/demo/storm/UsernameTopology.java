@@ -11,6 +11,7 @@ import com.mapr.TailSpout;
 import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
 import com.mapr.storm.streamparser.StreamParserFactory;
 import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +27,7 @@ public class UsernameTopology {
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     public static final Logger Log = Logger.getLogger(UsernameTopology.class);
     private static final String PROPERTIES_FILE = "conf/test.properties";
+    public static final org.slf4j.Logger log = LoggerFactory.getLogger(UsernameTopology.class);
 
     public static Properties loadProperties() throws IOException {
         Properties props = new Properties();
@@ -33,9 +35,13 @@ public class UsernameTopology {
         props.load(base);
         base.close();
 
-        FileInputStream in = new FileInputStream(PROPERTIES_FILE);
-        props.load(in);
-        in.close();
+        File propertiesFile = new File(PROPERTIES_FILE);
+        if (propertiesFile.exists()) {
+            log.debug("Adding additional properties from {}", propertiesFile.getCanonicalPath());
+            FileInputStream in = new FileInputStream(propertiesFile);
+            props.load(in);
+            in.close();
+        }
 
         return props;
     }
