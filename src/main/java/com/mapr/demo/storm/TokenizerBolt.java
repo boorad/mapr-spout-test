@@ -25,8 +25,7 @@ public class TokenizerBolt extends BaseRichBolt {
     private AtomicInteger tupleCount = new AtomicInteger();
 
     @SuppressWarnings("rawtypes")
-    public void prepare(Map stormConf, TopologyContext context,
-            OutputCollector collector) {
+    public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         this.collector = collector;
     }
 
