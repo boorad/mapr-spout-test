@@ -22,7 +22,7 @@ public class UsernameTopology {
     private static final String DEFAULT_TOP_N = "50";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     public static final Logger Log = Logger.getLogger(UsernameTopology.class);
-    private static final String PROPERTIES_FILE = "conf/test.properties";
+    private static final String PROPERTIES_FILE = "../conf/test.properties";
 
     public static Properties loadProperties() {
         Properties props = new Properties();
@@ -30,10 +30,14 @@ public class UsernameTopology {
             InputStream base = Resources.getResource("base.properties").openStream();
             props.load(base);
             base.close();
+            if (propFile.exists()) {
+                log.debug("Adding additional properties from {}", propFile.getCanonicalPath());
 
-            FileInputStream in = new FileInputStream(PROPERTIES_FILE);
-            props.load(in);
-            in.close();
+                FileInputStream in = new FileInputStream(PROPERTIES_FILE);
+                props.load(in);
+                in.close();
+            }
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
