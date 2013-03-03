@@ -1,8 +1,5 @@
 package com.mapr.demo.storm;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import backtype.storm.Config;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -11,25 +8,27 @@ import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
-
 import com.mapr.demo.storm.util.NthLastModifiedTimeTracker;
 import com.mapr.demo.storm.util.SlidingWindowCounter;
 import com.mapr.demo.storm.util.TupleHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This bolt performs moving window counts of incoming objects.
- *
+ * <p/>
  * The bolt is configured by two parameters, the length of the sliding window in seconds (which influences the output
  * data of the bolt, i.e. how it will count objects) and the emit frequency in seconds (which influences how often the
  * bolt will output the latest window counts). For instance, if the window length is set to an equivalent of five
  * minutes and the emit frequency to one minute, then the bolt will output the latest five-minute sliding window every
  * minute.
- *
+ * <p/>
  * Each time a tuple arrives, the count for the 0'th element of that tuple is incremented and the current count and
  * age for that key is emitted.  This guarantees any downstream consumer sees updates as soon as they happen.
- *
+ * <p/>
  * Each time a tick happens, the entire table is output.  This guarantees that any downstream consumer sees correct
  * counts for symbols not seen since the last tick.  Counts that go to zero are emitted once as zeros and then
  * removed from further consideration until that key reappears.
@@ -53,7 +52,8 @@ public class RollingCountBolt extends BaseRichBolt {
 
     /**
      * Configures tick events to arrive once every slot.
-     * @return  The updated configuration
+     *
+     * @return The updated configuration
      */
     @Override
     public Map<String, Object> getComponentConfiguration() {
@@ -75,10 +75,8 @@ public class RollingCountBolt extends BaseRichBolt {
 
             SlidingWindowCounter.DatedMap<Object> counts = counter.getCountsAdvanceWindow();
             for (Object key : counts.keySet()) {
-                if (counts.age(key) > 0) {
-                    collector.emit(new Values(key, counts.get(key), actualWindowLengthInSeconds, counts.age(key)));
-                    LOG.warn("Decay of {} to {}", key, counts.get(key));
-                }
+                collector.emit(new Values(key, counts.get(key), actualWindowLengthInSeconds, counts.age(key)));
+                LOG.warn("Decay of {} to {}", key, counts.get(key));
             }
         } else {
             Object key = tuple.getValue(0);
