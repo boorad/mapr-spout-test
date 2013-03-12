@@ -28,7 +28,7 @@ public class Rankings implements Serializable, Iterable<Rankable> {
         return Math.min(maxSize, data.size());
     }
 
-    public Collection<Rankable> getRankings() {
+    public synchronized Collection<Rankable> getRankings() {
         SortedSet<Rankable> r = Sets.newTreeSet(Ordering.natural().reverse());
         r.addAll(data.values());
         while (r.size() > maxSize) {
@@ -37,7 +37,7 @@ public class Rankings implements Serializable, Iterable<Rankable> {
         return r;
     }
 
-    public void add(Rankable r) {
+    public synchronized void add(Rankable r) {
         if (r.getCount() > 0) {
             data.put(r.getObject(), r);
         } else {

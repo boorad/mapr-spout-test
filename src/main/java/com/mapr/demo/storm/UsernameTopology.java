@@ -11,8 +11,12 @@ import com.mapr.TailSpout;
 import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
 import com.mapr.storm.streamparser.StreamParserFactory;
 import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -22,33 +26,28 @@ public class UsernameTopology {
     private static final String DEFAULT_TOP_N = "50";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-spout-test";
     public static final Logger Log = Logger.getLogger(UsernameTopology.class);
-    private static final String PROPERTIES_FILE = "../conf/test.properties";
+    private static final String PROPERTIES_FILE = "conf/test.properties";
+    public static final org.slf4j.Logger log = LoggerFactory.getLogger(UsernameTopology.class);
 
-    public static Properties loadProperties() {
+    public static Properties loadProperties() throws IOException {
         Properties props = new Properties();
-        try {
-            InputStream base = Resources.getResource("base.properties").openStream();
-            props.load(base);
-            base.close();
-            if (propFile.exists()) {
-                log.debug("Adding additional properties from {}", propFile.getCanonicalPath());
+        InputStream base = Resources.getResource("base.properties").openStream();
+        props.load(base);
+        base.close();
 
-                FileInputStream in = new FileInputStream(PROPERTIES_FILE);
-                props.load(in);
-                in.close();
-            }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        File propertiesFile = new File(PROPERTIES_FILE);
+        if (propertiesFile.exists()) {
+            log.debug("Adding additional properties from {}", propertiesFile.getCanonicalPath());
+            FileInputStream in = new FileInputStream(propertiesFile);
+            props.load(in);
+            in.close();
         }
 
         return props;
     }
 
     public static void main(String[] args) throws AlreadyAliveException,
-            InvalidTopologyException, InterruptedException {
+            InvalidTopologyException, InterruptedException, IOException {
 
         Log.info("---------------------");
         Log.info("------STARTING-------");

@@ -1,9 +1,5 @@
 package com.mapr.demo.storm.util;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import backtype.storm.Config;
 import backtype.storm.topology.BasicOutputCollector;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -11,31 +7,30 @@ import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
+import backtype.storm.utils.Time;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * This abstract bolt provides the basic behavior of bolts that rank objects according to their count.
- *
+ * <p/>
  * It uses a template method design pattern for {@link AbstractRankerBolt#execute(Tuple, BasicOutputCollector)} to allow
  * actual bolt implementations to specify how incoming tuples are processed, i.e. how the objects embedded within those
  * tuples are retrieved and counted.
- *
  */
 public abstract class AbstractRankerBolt extends BaseBasicBolt {
 
     private static final long serialVersionUID = 4931640198501530202L;
-    private static final int DEFAULT_EMIT_FREQUENCY_IN_SECONDS = 2;
-    private static final int DEFAULT_COUNT = 10;
+    private static final int DEFAULT_EMIT_FREQUENCY_IN_SECONDS = 5;
 
     private final int emitFrequencyInSeconds;
-    private final int count;
     private final Rankings rankings;
     protected boolean reportRankings = false;
-
-    public AbstractRankerBolt(boolean b) {
-        this(DEFAULT_COUNT, DEFAULT_EMIT_FREQUENCY_IN_SECONDS, b);
-    }
+    private long lastEmission = 0;
 
     public AbstractRankerBolt(int topN, boolean reportRankings) {
         this(topN, DEFAULT_EMIT_FREQUENCY_IN_SECONDS, reportRankings);
@@ -48,11 +43,10 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
         }
         if (emitFrequencyInSeconds < 1) {
             throw new IllegalArgumentException("The emit frequency must be >= 1 seconds (you requested "
-                + emitFrequencyInSeconds + " seconds)");
+                    + emitFrequencyInSeconds + " seconds)");
         }
-        count = topN;
         this.emitFrequencyInSeconds = emitFrequencyInSeconds;
-        rankings = new Rankings(count);
+        rankings = new Rankings(topN);
     }
 
     protected Rankings getRankings() {
@@ -66,15 +60,18 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
         if (TupleHelpers.isTickTuple(tuple)) {
             getLogger().info("Received tick tuple, triggering emit of current rankings");
             emitRankings(collector);
-        }
-        else {
+        } else {
             updateRankingsWithTuple(tuple);
+            if (Time.currentTimeMillis() - lastEmission > 2000) {
+                emitRankings(collector);
+            }
         }
     }
 
     public abstract void updateRankingsWithTuple(Tuple tuple);
 
     private void emitRankings(BasicOutputCollector collector) {
+        lastEmission = Time.currentTimeMillis();
         collector.emit(new Values(rankings));
         if (reportRankings) {
             List<Rankable> r = Lists.newArrayList();
