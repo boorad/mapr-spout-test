@@ -1,0 +1,15 @@
+// Copyright (c) 2013 MapR Technologies
+
+option java_generic_services = true;
+option java_package = "com.mapr.demo.twitter.wire";
+option java_outer_classname = "Tweet";
+
+// a tweet
+message TweetMsg {
+    optional uint64 id = 1;       // tweet id
+    optional string msg = 2;      // tweet text
+    optional string user = 3;     // username
+    optional bool rt = 4;         // retweet?
+    optional uint64 time = 5;     // tweet timestamp
+    optional string query = 6;    // query search term
+}
