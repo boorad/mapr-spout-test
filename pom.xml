@@ -112,6 +112,21 @@
           </execution>
         </executions>
       </plugin>
+            <plugin>
+                <groupId>com.github.igor-petruk.protobuf</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.5.1</version>
+                <configuration>
+                    <protocCommand>/usr/local/bin/protoc</protocCommand>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
     </plugins>
   </build>
   <artifactId>mapr-storm-demo</artifactId>

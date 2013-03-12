@@ -3,6 +3,9 @@ package com.mapr.demo.twitter;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import twitter4j.FilterQuery;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -19,9 +22,8 @@ import twitter4j.TwitterStreamFactory;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ServiceException;
 import com.googlecode.protobuf.pro.duplex.PeerInfo;
+import com.mapr.demo.twitter.wire.Tweet;
 import com.mapr.franz.catcher.Client;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TweetLogger {
 
@@ -43,11 +45,6 @@ public class TweetLogger {
 
         TweetLogger t = new TweetLogger();
 
-//        Client logger = new Client(Lists.newArrayList(new PeerInfo(args[0], Integer.parseInt(args[1]))));
-//        log.info("Connected to log catcher");
-//        log.info("Running query");
-//        t.query(args[2], logger);
-
         log.info("Invoking filter stream");
         t.stream(args[2], args[0], Integer.parseInt(args[1]));
     }
@@ -68,11 +65,14 @@ public class TweetLogger {
                 List<Status> tweets = result.getTweets();
 
                 for (Status tweet : tweets) {
-                    String user = tweet.getUser().getScreenName();
-                    String content = tweet.getText();
-                    log.debug("User {} tweeted {}", user, content);
-                    logger.sendMessage("users", user);
-                    logger.sendMessage("tweets", content);
+                    Tweet.TweetMsg.Builder t = Tweet.TweetMsg.newBuilder();
+                    t.setId( tweet.getId() );
+                    t.setMsg( tweet.getText() );
+                    t.setUser( tweet.getUser().getScreenName() );
+                    t.setRt( tweet.getRetweetedStatus().isRetweet() );
+                    t.setTime( tweet.getCreatedAt().getTime() );
+                    t.setQuery( query_term );
+                    logger.sendMessage( "tweets", t.build().toByteArray() );
 
                 }
             } while ((query = result.nextQuery()) != null);
