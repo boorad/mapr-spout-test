@@ -2,10 +2,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>mapr</groupId>
-  <version>0.1-SNAPSHOT</version>
-  <name>mapr_spout_test</name>
-  <description>MapR Spout Test for Storm</description>
+  <groupId>mapr-storm</groupId>
+  <version>0.2</version>
+  <name>mapr-storm-demo</name>
+  <description>MapR Storm Connector - demo code</description>
   <properties>
     <deployDir>target/deploy</deployDir>
   </properties>
@@ -18,9 +18,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>mapr-spout</groupId>
-      <artifactId>mapr-spout</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <groupId>mapr-storm</groupId>
+      <artifactId>mapr-storm</artifactId>
+      <version>0.2</version>
     </dependency>
     <dependency>
       <groupId>org.twitter4j</groupId>
@@ -114,5 +114,5 @@
       </plugin>
     </plugins>
   </build>
-  <artifactId>mapr_spout_test</artifactId>
+  <artifactId>mapr-storm-demo</artifactId>
 </project>
