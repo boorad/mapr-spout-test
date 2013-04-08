@@ -16,28 +16,36 @@ body {
   background-position: right top;
   background-size: 90% auto;
   background-repeat: no-repeat; }
+  #container .settings .menu-item {
+    margin: 0.5em; }
+    #container .settings .menu-item input {
+      margin-bottom: 0px; }
+    #container .settings .menu-item #hide_top {
+      width: 1.5em; }
   #container .title {
     font-size: 2em;
     text-align: center;
     font-weight: bold; }
-  #container #sections div {
-    display: inline-block;
-    vertical-align: top; }
-    #container #sections div h2 {
-      font-size: 1.50em;
-      text-align: center;
-      text-shadow: white 0.1em 0.1em 0.2em;
-      width: 100%;
-      background-color: rgba(255, 255, 255, 0.75); }
-  #container #sections svg {
-    background-color: rgba(1, 70, 127, 0.85);
-    border-radius: 20px;
-    height: 500px; }
-  #container #sections #words text {
-    pointer-events: none; }
-  #container #sections #users {
-    width: 410px;
-    margin-left: 10px; }
+  #container #sections {
+    margin-top: 10px; }
+    #container #sections div {
+      display: inline-block;
+      vertical-align: top; }
+      #container #sections div h2 {
+        font-size: 1.50em;
+        text-align: center;
+        text-shadow: white 0.1em 0.1em 0.2em;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.75); }
+    #container #sections svg {
+      background-color: rgba(1, 70, 127, 0.85);
+      border-radius: 20px;
+      height: 500px; }
+    #container #sections #words text {
+      pointer-events: none; }
+    #container #sections #users {
+      width: 410px;
+      margin-left: 10px; }
 
 #tooltip {
   display: none;
