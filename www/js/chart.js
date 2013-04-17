@@ -186,8 +186,14 @@ g.Chart = function(){
             that.hide_top = n;
         },
 
-        updateQuery : function() {
-
+        updateQuery : function(q) {
+            $.ajax({
+                type : "POST",
+                url : "/newquery",
+                data : "q=" + q,
+                success : function() {},
+                dataType : "text"
+            });
         },
 
         getWordData : function(callback) {

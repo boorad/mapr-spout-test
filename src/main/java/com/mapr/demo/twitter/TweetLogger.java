@@ -1,6 +1,12 @@
 package com.mapr.demo.twitter;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -20,6 +26,7 @@ import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import com.google.protobuf.ServiceException;
 import com.googlecode.protobuf.pro.duplex.PeerInfo;
 import com.mapr.demo.twitter.wire.Tweet;
@@ -28,7 +35,15 @@ import com.mapr.franz.catcher.Client;
 public class TweetLogger {
 
     public static final Logger log = LoggerFactory.getLogger(TweetLogger.class);
-    public static String query_term = "unknown.query";
+
+    static final String QUERY_FILE = "query";
+    static String queryFilePath = "/tmp/www/in";
+    static final Long QUERY_FILE_MONITOR_INTERVAL = 1000l;
+    static String queryTerm = "unknown.query";
+    static File queryFile;
+    static String host = "localhost";
+    static int port = 8080;
+    static TwitterStream ts;
 
     /**
      * Runs the process that queries twitter and logs the results.
@@ -40,13 +55,18 @@ public class TweetLogger {
     public static void main(String[] args) throws IOException, ServiceException, TwitterException {
         if (args.length < 3) {
             System.out.println("Usage: java -cp <classpath> "
-                    + "com.mapr.demo.twitter.TweetLogger "
-                    + "<catcherhost> <catcherport> <query-for-twitter>");
+                    + "com.mapr.demo.twitter.TweetLogger query_file_path "
+                    + "<catcherhost> <catcherport>");
         } else {
-            query_term = args[2];
+            queryFilePath = args[0];
+            host = args[1];
+            port = Integer.parseInt(args[2]);
+            TweetLogger.setQueryFile();
+            queryTerm = TweetLogger.getQuery();
             TweetLogger t = new TweetLogger();
             log.info("Invoking filter stream");
-            t.stream(args[0], Integer.parseInt(args[1]));
+            t.startStream();
+            TweetLogger.monitorFile(queryFile);
         }
     }
 
@@ -59,7 +79,7 @@ public class TweetLogger {
 
         // query loop
         try {
-            Query query = new Query(query_term);
+            Query query = new Query(queryTerm);
             QueryResult result;
             do {
                 result = twitter.search(query);
@@ -72,7 +92,7 @@ public class TweetLogger {
                     t.setUser( tweet.getUser().getScreenName() );
                     t.setRt( tweet.getRetweetedStatus().isRetweet() );
                     t.setTime( tweet.getCreatedAt().getTime() );
-                    t.setQuery( query_term );
+                    t.setQuery( queryTerm );
                     logger.sendMessage( "tweets", t.build().toByteArray() );
 
                 }
@@ -99,7 +119,7 @@ public class TweetLogger {
                 t.setUser( s.getUser().getScreenName() );
                 t.setRt( s.isRetweet() );
                 t.setTime( s.getCreatedAt().getTime() );
-                t.setQuery( query_term );
+                t.setQuery( queryTerm );
                 c.sendMessage( "tweets", t.build().toByteArray() );
             } catch (Exception e) {
                 log.error("Exception raised while logging status update", e);
@@ -125,17 +145,63 @@ public class TweetLogger {
     }
 
 
-    public void stream(String host, int port)
+    private void startStream()
             throws IOException, ServiceException {
         StatusListener listener = new FranzStreamer(host, port);
 
-        TwitterStream ts = new TwitterStreamFactory().getInstance();
+        ts = new TwitterStreamFactory().getInstance();
         ts.addListener(listener);
 
         FilterQuery fq = new FilterQuery();
-        fq.track(new String[]{query_term});
+        fq.track(new String[]{queryTerm});
 
         ts.filter(fq);
     }
 
+    private static void stopStream() {
+        log.info("Shutting down TwitterStream");
+        ts.shutdown();
+    }
+
+    public static void changeQuery() throws IOException {
+        String query = getQuery();
+        queryTerm = query;
+        log.info("query changing to: " + query);
+
+        // stop stream
+        stopStream();
+
+        // restart stream with new term
+
+    }
+
+    private static void setQueryFile() throws IOException {
+
+        File f = new File(queryFilePath, QUERY_FILE);
+        try {
+            Files.createParentDirs(f);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        queryFile = f;
+    }
+
+    private static String getQuery() throws IOException {
+        FileInputStream stream = new FileInputStream(queryFile);
+        try {
+          FileChannel fc = stream.getChannel();
+          MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+          /* Instead of using default, pass in a decoder. */
+          return Charset.defaultCharset().decode(bb).toString();
+        } finally {
+          stream.close();
+        }
+    }
+
+    private static void monitorFile(File file) throws FileNotFoundException {
+        FileMonitor monitor = FileMonitor.getInstance();
+        monitor.addFileChangeListener(new QueryFileChangeListener(),
+                file,
+                QUERY_FILE_MONITOR_INTERVAL);
+    }
 }

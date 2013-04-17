@@ -1,0 +1,12 @@
+#!/bin/bash
+
+BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"
+$BIN_DIR/env.sh
+
+exec 2>&1
+
+while true
+do
+   java -cp ${JAR} com.mapr.demo.storm.TweetTopology >> ${LOG_DIR}/tweet.log
+   sleep 5
+done

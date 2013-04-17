@@ -18,3 +18,4 @@ www/data/*
 conf/*.properties
 
 *sass-cache*
+run/*
