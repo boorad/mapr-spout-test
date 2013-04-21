@@ -1,0 +1,10 @@
+# topology
+remote=false
+spouts=1
+
+# throttles the spouts to not overload queue requests if there are no messages
+spout.throttle.enabled=true
+# seconds the most a spout will wait in between requests
+spout.throttle.delay_max=1000
+# We climb to the delay max by 100 milliseconds
+spout.throttle.delay_step=100
