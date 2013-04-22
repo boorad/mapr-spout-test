@@ -17,18 +17,14 @@ import com.mapr.demo.storm.TweetTopology;
 public class JSONWriter {
 
     static final Logger log = LoggerFactory.getLogger(JSONWriter.class);
-    static String dir = "";
-    static Properties props;
-
-    static {
-        props = TweetTopology.loadProperties();
-        log.debug(props.toString());
-        dir = props.getProperty("doc.root");
-    }
+    static Properties props = TweetTopology.loadProperties();;
 
     public static void write(JSONObject json, String type) {
         try {
+            String dir = props.getProperty("doc.root");
             String file = props.getProperty(type);
+            log.debug(dir + "/" + file);
+
             // write to temp copy and rename to get atomic effect
             File outputFile = new File(dir, file);
             File tmp = new File(dir, file + ".tmp");

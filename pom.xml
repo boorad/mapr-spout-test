@@ -20,7 +20,7 @@
     <dependency>
       <groupId>mapr-storm</groupId>
       <artifactId>mapr-storm</artifactId>
-      <version>0.2</version>
+      <version>0.3</version>
     </dependency>
     <dependency>
       <groupId>org.twitter4j</groupId>

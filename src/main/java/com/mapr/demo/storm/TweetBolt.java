@@ -44,7 +44,9 @@ public class TweetBolt extends BaseRichBolt {
 
         try {
             // deserialize tweet
-            t = Tweet.TweetMsg.parseFrom( tuple.getBinary(0) );
+            byte[] msg = tuple.getBinary(0);
+            log.debug(msg.toString());
+            t = Tweet.TweetMsg.parseFrom( msg );
 
             // if first tuple, write out query term to json
             if( n == 1 ) {
@@ -78,7 +80,7 @@ public class TweetBolt extends BaseRichBolt {
 
     private void flush(String query) {
         JSONObject json = new JSONObject();
-        json.put("query", query);
+        json.put("q", query);
         JSONWriter.write(json, "query");
     }
 }

@@ -35,25 +35,21 @@ public class TweetTopology {
 
     public static Properties loadProperties() {
         Properties props = new Properties();
-        try {
-            InputStream base = Resources.getResource("base.properties").openStream();
-            props.load(base);
-            base.close();
-
-            File propFile = new File(PROPERTIES_FILE);
-            if (propFile.exists()) {
-                log.debug("Adding additional properties from {}", propFile.getCanonicalPath());
-
-                FileInputStream in = new FileInputStream(PROPERTIES_FILE);
-                props.load(in);
-                in.close();
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        loadProperties("base.properties", props);
+        loadProperties(PROPERTIES_FILE, props);
         return props;
+    }
+
+    private static Properties loadProperties(String resource, Properties props) {
+        try {
+            InputStream is = Resources.getResource(resource).openStream();
+            log.info("Loading properties from '" + resource + "'.");
+            props.load(is);
+      } catch (Exception e) {
+              log.info("Not loading properties from '" + resource + "'.");
+              log.info(e.getMessage());
+      }
+      return props;
     }
 
     public static void main(String[] args) throws AlreadyAliveException,

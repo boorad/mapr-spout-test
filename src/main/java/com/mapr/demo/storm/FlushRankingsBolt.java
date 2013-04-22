@@ -26,11 +26,9 @@ public class FlushRankingsBolt extends BaseRichBolt {
     public static final Logger log = LoggerFactory.getLogger(FlushRankingsBolt.class);
     private OutputCollector collector;
     private String type = "unknown.output";
-    private final Properties props;
 
     public FlushRankingsBolt(String type) {
         this.type = type;
-        props = TweetTopology.loadProperties();
     }
 
     @SuppressWarnings("rawtypes")

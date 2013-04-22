@@ -5,7 +5,8 @@
 # on exit. The 'server' and 'client' are the Franz server and the Tweetlogger client.
 # The 'tweets' script starts the Storm topology.
 
-./env.sh
+BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"
+. $BIN_DIR/env.sh
 
  cd ${BIN_DIR}
 
@@ -18,10 +19,9 @@ sleep 1
 sleep 1
 
 # run Storm Topology
-./tweets &
-echo $! > ${RUN_DIR}/tweets.pid
+./storm &
 sleep 1
 
 # run Web Server
-./webserver
-echo $! > ${RUN_DIR}/webserver.pid
+./webserver &
+sleep 1

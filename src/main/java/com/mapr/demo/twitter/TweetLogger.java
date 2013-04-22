@@ -187,6 +187,7 @@ public class TweetLogger {
     }
 
     private static String getQuery() throws IOException {
+        log.info("Getting query from " + queryFilePath + "/" + QUERY_FILE);
         FileInputStream stream = new FileInputStream(queryFile);
         try {
           FileChannel fc = stream.getChannel();
