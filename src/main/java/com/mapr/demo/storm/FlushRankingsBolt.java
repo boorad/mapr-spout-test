@@ -1,26 +1,24 @@
 package com.mapr.demo.storm;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Properties;
+
+import net.minidev.json.JSONObject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.topology.base.BaseRichBolt;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
-import com.google.common.io.Files;
+
+import com.mapr.demo.storm.util.JSONWriter;
 import com.mapr.demo.storm.util.Rankable;
 import com.mapr.demo.storm.util.Rankings;
-import net.minidev.json.JSONObject;
-import net.minidev.json.JSONValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 public class FlushRankingsBolt extends BaseRichBolt {
 
@@ -28,13 +26,12 @@ public class FlushRankingsBolt extends BaseRichBolt {
     public static final Logger log = LoggerFactory.getLogger(FlushRankingsBolt.class);
     private OutputCollector collector;
     private String type = "unknown.output";
-    private final Properties props;
 
     public FlushRankingsBolt(String type) {
         this.type = type;
-        props = TweetTopology.loadProperties();
     }
 
+    @SuppressWarnings("rawtypes")
     public void execute(Tuple tuple) {
         Rankings rankings = (Rankings) tuple.getValue(0);
 
@@ -43,7 +40,7 @@ public class FlushRankingsBolt extends BaseRichBolt {
         for (Rankable r : ranks) {
             json.put((String) r.getObject(), r.getCount());
         }
-        flush(json);
+        JSONWriter.write(json, type);
         collector.ack(tuple);
     }
 
@@ -58,23 +55,5 @@ public class FlushRankingsBolt extends BaseRichBolt {
         this.collector = collector;
     }
 
-    private void flush(JSONObject json) {
-        try {
-            // write to temp copy and rename to get atomic effect
-            File outputFile = new File(props.getProperty("doc.root"), props.getProperty(type));
-            File tmp = new File(props.getProperty("doc.root"), props.getProperty(type) + ".tmp");
-            if (!outputFile.getParentFile().exists() && !outputFile.getParentFile().mkdirs()) {
-                throw new RuntimeException(String.format("Cannot create output directory %s", outputFile.getParentFile()));
-            }
-
-            Files.write(JSONValue.toJSONString(json), tmp, Charset.forName("UTF-8"));
-            if (!tmp.renameTo(outputFile)) {
-                log.error("Unable to overwrite {} using rename", outputFile);
-                throw new IOException("Cannot overwrite data file");
-            }
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-    }
 
 }

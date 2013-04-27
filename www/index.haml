@@ -3,16 +3,37 @@
 %html
   %head
     %title MapR Realtime Streaming Demo
-    /%link( rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css" )
+    %link( rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css" )
     %link( rel="stylesheet" type="text/css" href="css/chart.css" )
   %body
     #container
       #header
+        .settings.btn-group.pull-right
+          %button.btn.btn-small.dropdown-toggle(data-toggle="dropdown")
+            Settings
+            %span.caret
+          .dropdown-menu.pull-right.settings-menu
+            .menu-item
+              Query:
+              %input#query_input(name="query_input" type="text")
+              %button.btn.btn-small.btn-primary#new_query Go
+            .menu-item
+              Hide the top
+              %input#hide_top(name="drop_top" type="text" maxlength="2" value="2")
+              .btn-group.btn-group-vertical
+                %button.btn.btn-mini.dropup.up
+                  %span.caret
+                %button.btn.btn-mini.down
+                  %span.caret
+              words
         .logo
         .title MapR: Delivering Streaming Writes for Realtime Applications
       #sections
         #words
-          %h2 Live Word Cloud from "#strataconf" Tweets
+          %h2
+            Live Word Cloud from
+            %span.query "query"
+            Tweets
         #users
           %h2 Who is Tweeting?
       #footer

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"
+. $BIN_DIR/env.sh
+
+cd ${WWW_DIR}
+
+exec 2>&1
+${BIN_DIR}/webserver.py ${WWW_DIR} \
+  >> ${LOG_DIR}/webserver.log &
+
+echo $! > ${RUN_DIR}/webserver.pid

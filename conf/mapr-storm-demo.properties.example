@@ -2,11 +2,11 @@
 remote=false
 spouts=1
 
-base.directory=/tmp/mapr-storm
+base.directory=/Users/brad/dev/mapr/storm-demo/data/mapr-storm
 
 window = 3600
 
-doc.root=/tmp/www/out
+doc.root=/Users/brad/dev/mapr/storm-demo/data/www/out
 
 tweets=tweets.json
 users=users.json

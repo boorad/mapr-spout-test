@@ -3,18 +3,48 @@
 <html>
   <head>
     <title>MapR Realtime Streaming Demo</title>
-    <!-- %link( rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css" ) -->
+    <link href='bootstrap/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
     <link href='css/chart.css' rel='stylesheet' type='text/css'>
   </head>
   <body>
     <div id='container'>
       <div id='header'>
+        <div class='settings btn-group pull-right'>
+          <button class='btn btn-small dropdown-toggle' data-toggle='dropdown'>
+            Settings
+            <span class='caret'></span>
+          </button>
+          <div class='dropdown-menu pull-right settings-menu'>
+            <div class='menu-item'>
+              Query:
+              <input id='query_input' name='query_input' type='text'>
+              <button class='btn btn-small btn-primary' id='new_query'>Go</button>
+            </div>
+            <div class='menu-item'>
+              Hide the top
+              <input id='hide_top' maxlength='2' name='drop_top' type='text' value='2'>
+              <div class='btn-group btn-group-vertical'>
+                <button class='btn btn-mini dropup up'>
+                  <span class='caret'></span>
+                </button>
+                <button class='btn btn-mini down'>
+                  <span class='caret'></span>
+                </button>
+              </div>
+              words
+            </div>
+          </div>
+        </div>
         <div class='logo'></div>
         <div class='title'>MapR: Delivering Streaming Writes for Realtime Applications</div>
       </div>
       <div id='sections'>
         <div id='words'>
-          <h2>Live Word Cloud from "#strataconf" Tweets</h2>
+          <h2>
+            Live Word Cloud from
+            <span class='query'>"query"</span>
+            Tweets
+          </h2>
         </div>
         <div id='users'>
           <h2>Who is Tweeting?</h2>

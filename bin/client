@@ -1,0 +1,11 @@
+#!/bin/bash
+
+BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"
+. $BIN_DIR/env.sh
+
+exec 2>&1
+java -cp ${CONF_DIR}:${JAR} \
+  com.mapr.demo.twitter.TweetLogger ${QUERY_PATH} ${DEMO_HOST} ${DEMO_PORT} \
+  >> ${LOG_DIR}/client.log &
+
+echo $! > ${RUN_DIR}/client.pid

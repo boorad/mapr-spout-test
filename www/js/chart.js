@@ -14,9 +14,15 @@ var g = g || {};
 
 g.Chart = function(){
     return {
-        delay : 5000,
-        url : "data/tweets.json",
         $j : jQuery,
+        delay : 5000,
+
+        url : "data/tweets.json",
+        query_url : "data/query.json",
+        query : "{unknown}",
+        hide_top : 2,
+        MAX_HIDE : 25,
+
         //defaults
         width           : 550,
         height          : 550,
@@ -95,6 +101,9 @@ g.Chart = function(){
         init: function() {
             var that = this;
 
+            $(".settings #hide_top").data("old", that.hide_top);
+            that.bindSettingsControls();
+
             this.scatterPlotY = this.changeScale(0);
 
             this.pctFormat = function(p){
@@ -123,12 +132,67 @@ g.Chart = function(){
                 .attr("width", this.width);
             this.svg = svg;
 
+            that.getQueryData();
+
             that.getWordData(function() {
                 that.render();
                 that.start();
                 that.totalLayout();
 
                 that.data_loop();
+            });
+        },
+
+        bindSettingsControls : function() {
+            var that = this;
+
+            // settings dropdown has complex fields, so stop click from closing it
+            $(".settings-menu").click(function(e) {
+                e.stopPropagation();
+            });
+
+            // new query 'go' button clicked
+            $("#new_query").click(function(e) {
+                var q = $("#query_input").val();
+                that.updateQuery(q);
+                that.setQuery(q);
+            });
+
+            // up and down buttons for hiding top N words
+            $(".settings .up").click(function(e) {
+                that.changeHideTop(1, true);
+            });
+
+            $(".settings .down").click(function(e) {
+                that.changeHideTop(-1, true);
+            });
+
+            $(".settings #hide_top").change(function(e) {
+                var diff = parseInt($(this).val()) - $(this).data("old");
+                that.changeHideTop(diff, false);
+            });
+        },
+
+        changeHideTop : function(incr, update) {
+            var that = this;
+            var n = $(".settings #hide_top").val();
+            n = parseInt(n) || 0;
+            if( update ) n += incr;
+            if( n < 0 ) n = 0;
+            var max = Math.min(that.adata.length, that.MAX_HIDE);
+            if( n > max ) n = max;
+            $(".settings #hide_top").val(n);
+            $(".settings #hide_top").data("old", n);
+            that.hide_top = n;
+        },
+
+        updateQuery : function(q) {
+            $.ajax({
+                type : "POST",
+                url : "/newquery",
+                data : "q=" + q,
+                success : function() {},
+                dataType : "text"
             });
         },
 
@@ -150,6 +214,33 @@ g.Chart = function(){
             });
         },
 
+        getQueryData : function() {
+            var that = this;
+            $.ajax({
+                url : that.query_url,
+                dataType : "json",
+                cache : false,
+                success : function(json, status, jqXHR) {
+                    if( json.q ) {
+                        that.setQuery(json.q);
+                    } else {
+                        that.setQuery("{unknown}");
+                    }
+                },
+                error : function(jqXHR, status, error) {
+                    console.error(jqXHR, status, error);
+                    that.setQuery("{unknown}");
+                }
+            });
+        },
+
+        setQuery : function(q) {
+            var that = this;
+            that.query = q;
+            $("#query_input").val(q);
+            $("#words .query").html(q);
+        },
+
         processData : function() {
             var changed = false;
             var that = this;
@@ -168,6 +259,26 @@ g.Chart = function(){
             // Builds the nodes data array from the original data
             if( !that.data ) return true;
             var data = that.clone(that.data); // local copy
+
+            // turn data into an array of objects
+            var adata = $.map(data, function(val, key) {
+                return {"word" : key, "count" : val};
+            });
+
+            // sort it (ascending) and hide top N (
+            adata = adata.sort(function(o1,o2) {
+                return o1.count-o2.count;
+            });
+            that.adata = adata; // save this for calc in changeHideTop
+            adata = adata.slice(0, adata.length -
+                        Math.min(that.hide_top, adata.length));
+
+            // hack - put adata back into data
+            var newdata = {};
+            $.each(adata, function(i, e) {
+                newdata[e.word] = e.count;
+            });
+            data = newdata;
 
             // first, traverse existing nodes
             for(var i=0; i<that.nodes.length; i++) {

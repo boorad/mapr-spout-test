@@ -2,10 +2,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>mapr</groupId>
-  <version>0.1-SNAPSHOT</version>
-  <name>mapr_spout_test</name>
-  <description>MapR Spout Test for Storm</description>
+  <groupId>mapr-storm</groupId>
+  <version>0.3</version>
+  <name>mapr-storm-demo</name>
+  <description>MapR Storm Connector - demo code</description>
   <properties>
     <deployDir>target/deploy</deployDir>
   </properties>
@@ -18,9 +18,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>mapr-spout</groupId>
-      <artifactId>mapr-spout</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <groupId>mapr-storm</groupId>
+      <artifactId>mapr-storm</artifactId>
+      <version>0.3</version>
     </dependency>
     <dependency>
       <groupId>org.twitter4j</groupId>
@@ -79,6 +79,15 @@
   </modules>
   <build>
     <plugins>
+          <plugin>
+<groupId>org.apache.maven.plugins</groupId>
+<artifactId>maven-compiler-plugin</artifactId>
+<configuration>
+ <source>1.6</source>
+ <target>1.6</target>
+</configuration>
+</plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -103,7 +112,22 @@
           </execution>
         </executions>
       </plugin>
+            <plugin>
+                <groupId>com.github.igor-petruk.protobuf</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>0.5.1</version>
+                <configuration>
+                    <protocCommand>/usr/local/bin/protoc</protocCommand>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
     </plugins>
   </build>
-  <artifactId>mapr_spout_test</artifactId>
+  <artifactId>mapr-storm-demo</artifactId>
 </project>

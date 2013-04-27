@@ -20,6 +20,19 @@ body {
     background-size: 90% auto;
     background-repeat: no-repeat;
 
+    .settings {
+        .menu-item {
+            margin: 0.5em;
+            input {
+                margin-bottom: 0px;
+            }
+
+            #hide_top {
+                width: 1.5em;
+            }
+        }
+    }
+
     .title {
         font-size: 2em;
         text-align: center;
@@ -27,6 +40,7 @@ body {
     }
 
     #sections {
+        margin-top: 10px;
         div {
             display: inline-block;
             vertical-align: top;

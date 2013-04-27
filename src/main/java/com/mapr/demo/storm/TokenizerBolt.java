@@ -21,7 +21,7 @@ public class TokenizerBolt extends BaseRichBolt {
     private static final long serialVersionUID = -7548234692935382708L;
     private Twokenizer twokenizer = new Twokenizer();
     private OutputCollector collector;
-    private Logger log= LoggerFactory.getLogger(TokenizerBolt.class);
+    private Logger log = LoggerFactory.getLogger(TokenizerBolt.class);
     private AtomicInteger tupleCount = new AtomicInteger();
 
     @SuppressWarnings("rawtypes")
