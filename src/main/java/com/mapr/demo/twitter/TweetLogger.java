@@ -31,6 +31,7 @@ import com.google.protobuf.ServiceException;
 import com.googlecode.protobuf.pro.duplex.PeerInfo;
 import com.mapr.demo.twitter.wire.Tweet;
 import com.mapr.franz.catcher.Client;
+import com.mapr.demo.twitter.TweetStream;
 
 public class TweetLogger {
 
@@ -43,7 +44,7 @@ public class TweetLogger {
     static File queryFile;
     static String host = "localhost";
     static int port = 8080;
-    static TwitterStream ts;
+    static TweetStream ts;
 
     /**
      * Runs the process that queries twitter and logs the results.
@@ -149,18 +150,13 @@ public class TweetLogger {
             throws IOException, ServiceException {
         StatusListener listener = new FranzStreamer(host, port);
 
-        ts = new TwitterStreamFactory().getInstance();
-        ts.addListener(listener);
-
-        FilterQuery fq = new FilterQuery();
-        fq.track(new String[]{queryTerm});
-
-        ts.filter(fq);
+        ts = new TweetStream();
+        ts.startStream(listener);
     }
 
     private static void stopStream() {
         log.info("Shutting down TwitterStream");
-        ts.shutdown();
+        ts.stopStream();
     }
 
     public static void changeQuery() throws IOException {
@@ -169,9 +165,11 @@ public class TweetLogger {
         log.info("query changing to: " + query);
 
         // stop stream
-        stopStream();
+	ts.stopStream();
 
         // restart stream with new term
+
+        ts.changeQuery(queryTerm);
 
     }
 
