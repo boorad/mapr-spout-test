@@ -12,7 +12,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import twitter4j.FilterQuery;
 import twitter4j.Query;
 import twitter4j.QueryResult;
 import twitter4j.StallWarning;
@@ -22,8 +21,6 @@ import twitter4j.StatusListener;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -31,7 +28,6 @@ import com.google.protobuf.ServiceException;
 import com.googlecode.protobuf.pro.duplex.PeerInfo;
 import com.mapr.demo.twitter.wire.Tweet;
 import com.mapr.franz.catcher.Client;
-import com.mapr.demo.twitter.TweetStream;
 
 public class TweetLogger {
 
@@ -154,18 +150,13 @@ public class TweetLogger {
         ts.startStream(listener);
     }
 
-    private static void stopStream() {
-        log.info("Shutting down TwitterStream");
-        ts.stopStream();
-    }
-
-    public static void changeQuery() throws IOException {
+    public static void changeQuery() throws IOException, ServiceException {
         String query = getQuery();
         queryTerm = query;
         log.info("query changing to: " + query);
 
         // stop stream
-	ts.stopStream();
+    ts.stopStream();
 
         // restart stream with new term
 
