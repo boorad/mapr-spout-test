@@ -156,6 +156,9 @@ g.Chart = function(){
                 var q = $("#query_input").val();
                 that.updateQuery(q);
                 that.setQuery(q);
+                that.stop_and_start(that);
+                g.u.pause();
+                g.u.loop();
             });
 
             // up and down buttons for hiding top N words
@@ -315,20 +318,24 @@ g.Chart = function(){
             return changed;
         },
 
+        stop_and_start : function(chart) {
+            chart.force.stop();
+            chart.getWordData(function() {
+                chart.render();
+                chart.force
+                    .on("tick", function(e){
+                        chart.tick(e, 0);
+                    })
+                    .start();
+            });
+        },
+
         data_loop : function() {
             var that = this;
             this.data_interval = setInterval(function() {
                 // make sure force-directed layout is done before starting loop
                 if( that.force.alpha() < 0.01 ) {
-                    that.force.stop();
-                    that.getWordData(function() {
-                        that.render();
-                        that.force
-                            .on("tick", function(e){
-                                that.tick(e, 0);
-                            })
-                            .start();
-                    });
+                    that.stop_and_start(that);
                 }
             }, that.delay);
         },
