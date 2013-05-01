@@ -36,9 +36,9 @@ import java.util.Map;
 public class RollingCountBolt extends BaseRichBolt {
 
     private static final long serialVersionUID = 5537727428628598519L;
-    private static final Logger LOG = LoggerFactory.getLogger(RollingCountBolt.class);
+    private static final Logger log = LoggerFactory.getLogger(RollingCountBolt.class);
 
-    private final SlidingWindowCounter<Object> counter;
+    private SlidingWindowCounter<Object> counter;
     private final int windowLengthInSeconds;
     private final int timeUnit;
     private OutputCollector collector;
@@ -47,7 +47,7 @@ public class RollingCountBolt extends BaseRichBolt {
     public RollingCountBolt(int windowLengthInSeconds, int timeUnit) {
         this.windowLengthInSeconds = windowLengthInSeconds;
         this.timeUnit = timeUnit;
-        counter = new SlidingWindowCounter<Object>((this.windowLengthInSeconds + this.timeUnit - 1) / this.timeUnit);
+        resetCounter();
     }
 
     /**
@@ -70,19 +70,24 @@ public class RollingCountBolt extends BaseRichBolt {
 
     public void execute(Tuple tuple) {
         if (TupleHelpers.isTickTuple(tuple)) {
-            LOG.info("Received tick tuple, triggering emit of current window counts");
+            //log.debug("Received tick tuple, triggering emit of current window counts");
             int actualWindowLengthInSeconds = lastModifiedTracker.recordModAndReturnOldest();
 
             SlidingWindowCounter.DatedMap<Object> counts = counter.getCountsAdvanceWindow();
             for (Object key : counts.keySet()) {
                 collector.emit(new Values(key, counts.get(key), actualWindowLengthInSeconds, counts.age(key)));
-                LOG.debug("Periodic dump {} at {}", key, counts.get(key));
+                //log.debug("Periodic dump {} at {}", key, counts.get(key));
             }
+        } else if( TupleHelpers.isNewQueryTuple(tuple) ) {
+            log.info("new query tuple");
+            resetCounter();
+            collector.emit(tuple, new Values(TupleHelpers.NEW_QUERY_TOKEN));
+            collector.ack(tuple);
         } else {
             Object key = tuple.getValue(0);
             counter.incrementCount(key);
             int actualWindowLengthInSeconds = lastModifiedTracker.recordModAndReturnOldest();
-            LOG.debug("Bump of {} to {}", key, counter.get(key));
+            //log.debug("Bump of {} to {}", key, counter.get(key));
             collector.emit(new Values(key, counter.get(key), actualWindowLengthInSeconds, counter.age(key)));
             collector.ack(tuple);
         }
@@ -90,5 +95,9 @@ public class RollingCountBolt extends BaseRichBolt {
 
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declare(new Fields("obj", "count", "actualWindowLengthInSeconds", "age"));
+    }
+
+    private void resetCounter() {
+        counter = new SlidingWindowCounter<Object>((this.windowLengthInSeconds + this.timeUnit - 1) / this.timeUnit);
     }
 }

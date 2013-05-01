@@ -2,7 +2,6 @@ package com.mapr.demo.storm;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Properties;
 
 import net.minidev.json.JSONObject;
 

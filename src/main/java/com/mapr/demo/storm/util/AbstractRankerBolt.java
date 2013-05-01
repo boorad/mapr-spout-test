@@ -9,7 +9,10 @@ import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 import backtype.storm.utils.Time;
 import com.google.common.collect.Lists;
+import com.mapr.demo.storm.TokenizerBolt;
+
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,10 +30,12 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
     private static final long serialVersionUID = 4931640198501530202L;
     private static final int DEFAULT_EMIT_FREQUENCY_IN_SECONDS = 5;
 
+    private Logger log = LoggerFactory.getLogger(AbstractRankerBolt.class);
     private final int emitFrequencyInSeconds;
-    private final Rankings rankings;
+    private Rankings rankings;
     protected boolean reportRankings = false;
     private long lastEmission = 0;
+    private int topN = 150;
 
     public AbstractRankerBolt(int topN, boolean reportRankings) {
         this(topN, DEFAULT_EMIT_FREQUENCY_IN_SECONDS, reportRankings);
@@ -45,6 +50,7 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
             throw new IllegalArgumentException("The emit frequency must be >= 1 seconds (you requested "
                     + emitFrequencyInSeconds + " seconds)");
         }
+        this.topN = topN;
         this.emitFrequencyInSeconds = emitFrequencyInSeconds;
         rankings = new Rankings(topN);
     }
@@ -58,8 +64,11 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
      */
     public final void execute(Tuple tuple, BasicOutputCollector collector) {
         if (TupleHelpers.isTickTuple(tuple)) {
-            getLogger().info("Received tick tuple, triggering emit of current rankings");
+            //getLogger().debug("Received tick tuple, triggering emit of current rankings");
             emitRankings(collector);
+        } else if( TupleHelpers.isNewQueryTuple(tuple) ) {
+            log.info("new query tuple");
+            clearRankings();
         } else {
             updateRankingsWithTuple(tuple);
             if (Time.currentTimeMillis() - lastEmission > 2000) {
@@ -70,6 +79,7 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
 
     public abstract void updateRankingsWithTuple(Tuple tuple);
 
+    @SuppressWarnings("rawtypes")
     private void emitRankings(BasicOutputCollector collector) {
         lastEmission = Time.currentTimeMillis();
         collector.emit(new Values(rankings));
@@ -94,6 +104,10 @@ public abstract class AbstractRankerBolt extends BaseBasicBolt {
         Map<String, Object> conf = new HashMap<String, Object>();
         conf.put(Config.TOPOLOGY_TICK_TUPLE_FREQ_SECS, emitFrequencyInSeconds);
         return conf;
+    }
+
+    protected void clearRankings() {
+        rankings = new Rankings(topN);
     }
 
     public abstract Logger getLogger();

@@ -142,10 +142,8 @@ public class TweetLogger {
     }
 
 
-    private void startStream()
-            throws IOException, ServiceException {
+    private void startStream() throws IOException, ServiceException {
         StatusListener listener = new FranzStreamer(host, port);
-
         ts = new TweetStream();
         ts.startStream(listener);
     }
@@ -178,14 +176,13 @@ public class TweetLogger {
     private static String getQuery() throws IOException {
         log.info("Getting query from " + queryFilePath + "/" + QUERY_FILE);
         FileInputStream stream = new FileInputStream(queryFile);
-        try {
-          FileChannel fc = stream.getChannel();
-          MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-          /* Instead of using default, pass in a decoder. */
-          return Charset.defaultCharset().decode(bb).toString();
-        } finally {
-          stream.close();
-        }
+        FileChannel fc = stream.getChannel();
+        MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+        /* Instead of using default, pass in a decoder. */
+        String q = Charset.defaultCharset().decode(bb).toString();
+        log.info("Got query: '" + q + "'");
+        stream.close();
+        return q;
     }
 
     private static void monitorFile(File file) throws FileNotFoundException {

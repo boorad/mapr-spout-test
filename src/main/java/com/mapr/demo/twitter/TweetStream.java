@@ -22,6 +22,7 @@ public class TweetStream {
 
     public void startStream(StatusListener l)
             throws IOException, ServiceException {
+        log.info("Starting up TwitterStream");
         listener = l;
 
         ts = new TwitterStreamFactory().getInstance();
