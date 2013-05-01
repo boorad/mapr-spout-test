@@ -12,7 +12,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import twitter4j.FilterQuery;
 import twitter4j.Query;
 import twitter4j.QueryResult;
 import twitter4j.StallWarning;
@@ -22,8 +21,6 @@ import twitter4j.StatusListener;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -43,7 +40,7 @@ public class TweetLogger {
     static File queryFile;
     static String host = "localhost";
     static int port = 8080;
-    static TwitterStream ts;
+    static TweetStream ts;
 
     /**
      * Runs the process that queries twitter and logs the results.
@@ -145,33 +142,23 @@ public class TweetLogger {
     }
 
 
-    private void startStream()
-            throws IOException, ServiceException {
+    private void startStream() throws IOException, ServiceException {
         StatusListener listener = new FranzStreamer(host, port);
-
-        ts = new TwitterStreamFactory().getInstance();
-        ts.addListener(listener);
-
-        FilterQuery fq = new FilterQuery();
-        fq.track(new String[]{queryTerm});
-
-        ts.filter(fq);
+        ts = new TweetStream();
+        ts.startStream(listener);
     }
 
-    private static void stopStream() {
-        log.info("Shutting down TwitterStream");
-        ts.shutdown();
-    }
-
-    public static void changeQuery() throws IOException {
+    public static void changeQuery() throws IOException, ServiceException {
         String query = getQuery();
         queryTerm = query;
         log.info("query changing to: " + query);
 
         // stop stream
-        stopStream();
+    ts.stopStream();
 
         // restart stream with new term
+
+        ts.changeQuery(queryTerm);
 
     }
 
@@ -189,14 +176,13 @@ public class TweetLogger {
     private static String getQuery() throws IOException {
         log.info("Getting query from " + queryFilePath + "/" + QUERY_FILE);
         FileInputStream stream = new FileInputStream(queryFile);
-        try {
-          FileChannel fc = stream.getChannel();
-          MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-          /* Instead of using default, pass in a decoder. */
-          return Charset.defaultCharset().decode(bb).toString();
-        } finally {
-          stream.close();
-        }
+        FileChannel fc = stream.getChannel();
+        MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+        /* Instead of using default, pass in a decoder. */
+        String q = Charset.defaultCharset().decode(bb).toString();
+        log.info("Got query: '" + q + "'");
+        stream.close();
+        return q;
     }
 
     private static void monitorFile(File file) throws FileNotFoundException {

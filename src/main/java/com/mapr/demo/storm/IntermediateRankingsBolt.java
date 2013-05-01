@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public final class IntermediateRankingsBolt extends AbstractRankerBolt {
 
     private static final long serialVersionUID = -1369800530256637409L;
-    private static final Logger LOG = LoggerFactory.getLogger(IntermediateRankingsBolt.class);
+    private static final Logger log = LoggerFactory.getLogger(IntermediateRankingsBolt.class);
 
     public IntermediateRankingsBolt(int topN) {
         super(topN, true);
@@ -31,6 +31,6 @@ public final class IntermediateRankingsBolt extends AbstractRankerBolt {
 
     @Override
     public Logger getLogger() {
-        return LOG;
+        return log;
     }
 }

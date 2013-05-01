@@ -23,7 +23,7 @@ public class JSONWriter {
         try {
             String dir = props.getProperty("doc.root");
             String file = props.getProperty(type);
-            log.debug(dir + "/" + file);
+            //log.debug(dir + "/" + file);
 
             // write to temp copy and rename to get atomic effect
             File outputFile = new File(dir, file);

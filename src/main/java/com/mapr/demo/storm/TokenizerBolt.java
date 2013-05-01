@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -12,9 +15,8 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
+import com.mapr.demo.storm.util.TupleHelpers;
 import com.mapr.demo.twitter.Twokenizer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TokenizerBolt extends BaseRichBolt {
 
@@ -30,15 +32,19 @@ public class TokenizerBolt extends BaseRichBolt {
     }
 
     public void execute(Tuple tuple) {
-        int n = tupleCount.incrementAndGet();
-        if (n % 1000 == 0) {
-            log.warn("Processed {} tweets", n);
-        }
-        String tweet = tuple.getString(0);
-        //log.debug("Tokenizing {}", tweet);
-        List<String> tokens = twokenizer.twokenize(tweet);
-        for (String token : tokens) {
-            collector.emit(tuple, new Values(token));
+        if( TupleHelpers.isNewQueryTuple(tuple) ) {
+            log.info("new query tuple");
+            collector.emit(tuple, new Values(TupleHelpers.NEW_QUERY_TOKEN));
+        } else {
+            int n = tupleCount.incrementAndGet();
+            if (n % 1000 == 0) {
+                log.warn("Processed {} tweets", n);
+            }
+            String tweet = tuple.getString(0);
+            List<String> tokens = twokenizer.twokenize(tweet);
+            for (String token : tokens) {
+                collector.emit(tuple, new Values(token));
+            }
         }
         collector.ack(tuple);
     }

@@ -18,6 +18,7 @@ import backtype.storm.tuple.Values;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mapr.demo.storm.util.JSONWriter;
+import com.mapr.demo.storm.util.TupleHelpers;
 import com.mapr.demo.twitter.wire.Tweet;
 
 public class TweetBolt extends BaseRichBolt {
@@ -27,6 +28,7 @@ public class TweetBolt extends BaseRichBolt {
     private OutputCollector collector;
     private Logger log = LoggerFactory.getLogger(TweetBolt.class);
     private AtomicInteger tupleCount = new AtomicInteger();
+    private String queryTerm = "{unknown}";
 
     @SuppressWarnings("rawtypes")
     public void prepare(Map stormConf, TopologyContext context,
@@ -45,12 +47,25 @@ public class TweetBolt extends BaseRichBolt {
         try {
             // deserialize tweet
             byte[] msg = tuple.getBinary(0);
-            log.debug(msg.toString());
             t = Tweet.TweetMsg.parseFrom( msg );
+
+            String qt = t.getQuery();
 
             // if first tuple, write out query term to json
             if( n == 1 ) {
-                flush(t.getQuery());
+                this.queryTerm = qt;
+                flush(this.queryTerm);
+            }
+
+            // query changed?
+            if( !qt.equals(this.queryTerm) ) {
+                log.info("query changed to '" + qt + "'");
+                this.queryTerm = qt;
+                // send newquery tuple to zero out counts in other bolts
+                collector.emit("tweets", tuple,
+                        new Values(TupleHelpers.NEW_QUERY_TOKEN));
+                collector.emit("users", tuple,
+                        new Values(TupleHelpers.NEW_QUERY_TOKEN));
             }
 
             // TODO: check t.getTime() here before emitting?
