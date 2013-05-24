@@ -16,6 +16,7 @@ data/*
 www/data
 www/data/*
 conf/*.properties
+tmp/*
 
 *sass-cache*
 run/*
