@@ -10,6 +10,9 @@
 *.war
 *.ear
 
+# maven-shade
+dependency-reduced-pom.xml
+
 target/*
 log/*
 data/*
