@@ -1,6 +1,7 @@
 package com.mapr.demo.storm;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -50,7 +51,7 @@ public class TweetTopology {
     }
 
     public static void main(String[] args) throws AlreadyAliveException,
-            InvalidTopologyException, InterruptedException {
+            InvalidTopologyException, InterruptedException, IOException {
 
         log.info("---------------------");
         log.info("------STARTING-------");
