@@ -105,26 +105,12 @@
             <excludes>
               <exclude>storm:storm</exclude>
               <exclude>jmock:*</exclude>
-              <exclude>org.slf4j:*</exclude>
             </excludes>
           </artifactSet>
         </configuration>
       </execution>
     </executions>
   </plugin>
-
-<!--
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <archive>
-            <manifest>
-              <mainClass>com.mapr.maprspouttest.TestTopology</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
--->
             <plugin>
                 <groupId>com.github.igor-petruk.protobuf</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
