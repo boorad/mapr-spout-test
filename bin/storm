@@ -4,7 +4,12 @@ BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"
 . $BIN_DIR/env.sh
 
 exec 2>&1
-java -cp ${CONF_DIR}:${JAR} com.mapr.demo.storm.TweetTopology \
-  >> ${LOG_DIR}/storm.log &
+
+# use main() in topo
+#java -cp ${CONF_DIR}:${JAR} com.mapr.demo.storm.TweetTopology \
+#  >> ${LOG_DIR}/storm.log &
+
+# use storm admin script
+storm jar ${JAR} com.mapr.demo.storm.TweetTopology >> ${LOG_DIR}/storm.log &
 
 echo $! > ${RUN_DIR}/storm.pid
