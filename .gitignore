@@ -10,12 +10,16 @@
 *.war
 *.ear
 
+# maven-shade
+dependency-reduced-pom.xml
+
 target/*
 log/*
 data/*
 www/data
 www/data/*
 conf/*.properties
+tmp/*
 
 *sass-cache*
 run/*

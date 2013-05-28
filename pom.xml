@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>mapr-storm</groupId>
-  <version>0.3</version>
+  <version>0.4</version>
   <name>mapr-storm-demo</name>
   <description>MapR Storm Connector - demo code</description>
   <properties>
@@ -20,7 +20,7 @@
     <dependency>
       <groupId>mapr-storm</groupId>
       <artifactId>mapr-storm</artifactId>
-      <version>0.3</version>
+      <version>0.4</version>
     </dependency>
     <dependency>
       <groupId>org.twitter4j</groupId>
@@ -56,7 +56,7 @@
     <dependency>
       <groupId>storm</groupId>
       <artifactId>storm</artifactId>
-      <version>0.8.1</version>
+      <version>0.8.2</version>
     </dependency>
     <dependency>
       <groupId>com.googlecode.protobuf-rpc-pro</groupId>
@@ -83,35 +83,34 @@
 <groupId>org.apache.maven.plugins</groupId>
 <artifactId>maven-compiler-plugin</artifactId>
 <configuration>
- <source>1.6</source>
- <target>1.6</target>
+ <source>1.7</source>
+ <target>1.7</target>
 </configuration>
-</plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2.1</version>
+</plugin>
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-shade-plugin</artifactId>
+    <version>2.0</version>
+    <executions>
+      <execution>
+        <phase>package</phase>
+        <goals>
+          <goal>shade</goal>
+        </goals>
         <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <archive>
-            <manifest>
-              <mainClass>com.mapr.maprspouttest.TestTopology</mainClass>
-            </manifest>
-          </archive>
+          <shadedArtifactAttached>true</shadedArtifactAttached>
+          <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
+      <artifactSet>
+            <excludes>
+              <exclude>storm:storm</exclude>
+              <exclude>jmock:*</exclude>
+            </excludes>
+          </artifactSet>
         </configuration>
-        <executions>
-          <execution>
-            <id>assemble-all</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+      </execution>
+    </executions>
+  </plugin>
             <plugin>
                 <groupId>com.github.igor-petruk.protobuf</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>

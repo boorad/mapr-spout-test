@@ -1,7 +1,9 @@
 package com.mapr.demo.storm;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -16,10 +18,13 @@ import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
+import com.google.protobuf.ByteString;
+import com.mapr.ProtoSpout;
+import com.mapr.ProtoSpout.TupleParser;
 import com.mapr.TailSpout;
-import com.mapr.storm.streamparser.CountBlobStreamParserFactory;
-import com.mapr.storm.streamparser.StreamParserFactory;
 
 public class TweetTopology {
 
@@ -50,7 +55,7 @@ public class TweetTopology {
     }
 
     public static void main(String[] args) throws AlreadyAliveException,
-            InvalidTopologyException, InterruptedException {
+            InvalidTopologyException, InterruptedException, IOException {
 
         log.info("---------------------");
         log.info("------STARTING-------");
@@ -67,11 +72,23 @@ public class TweetTopology {
         log.debug(props.toString());
 
         // init the MapR Tail Spout
-        StreamParserFactory spf = new CountBlobStreamParserFactory();
+        TupleParser tp = new ProtoSpout.TupleParser() {
+            Splitter onSpace = Splitter.on(" ");
+
+            @Override
+            public List<Object> parse(ByteString buffer) {
+                return Lists.<Object>newArrayList(onSpace.split(buffer.toStringUtf8()));
+            }
+
+            @Override
+            public List<String> getOutputFields() {
+                throw new UnsupportedOperationException("Default operation");
+            }
+        };
         File statusFile = new File(baseDir + "/status");
         File inDir = new File(baseDir);
         Pattern inPattern = Pattern.compile(FILE_PATTERN);
-        TailSpout spout = new TailSpout(spf, statusFile, inDir, inPattern);
+        TailSpout spout = new ProtoSpout(tp, statusFile, inDir, inPattern);
 
         // TODO this should be set to true, but somebody isn't acking tuples correctly and that causes hangs
         spout.setReliableMode(false);

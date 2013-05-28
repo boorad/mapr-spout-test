@@ -25,7 +25,12 @@ class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
                      'CONTENT_TYPE':self.headers['Content-Type'],
                      })
         if 'q' in form:
-            self.write_new_query(form['q'].value)
+            qry=form['q'].value
+            self.write_new_query(qry)
+            print "set query to %s" % qry
+            self.send_response(200,"set query to %s" % qry)
+        else:
+            self.send_response(500,"query not set")
 
     def write_new_query(self, query):
         f = open(QUERY_FILE, 'w')
