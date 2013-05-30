@@ -8,6 +8,7 @@
   <description>MapR Storm Connector - demo code</description>
   <properties>
     <deployDir>target/deploy</deployDir>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <repositories>
     <repository>
@@ -41,6 +42,7 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8.2</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -57,6 +59,7 @@
       <groupId>storm</groupId>
       <artifactId>storm</artifactId>
       <version>0.8.2</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.googlecode.protobuf-rpc-pro</groupId>
@@ -73,59 +76,61 @@
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
       <version>3.0</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <modules>
   </modules>
   <build>
     <plugins>
-          <plugin>
-<groupId>org.apache.maven.plugins</groupId>
-<artifactId>maven-compiler-plugin</artifactId>
-<configuration>
- <source>1.7</source>
- <target>1.7</target>
-</configuration>
-
-</plugin>
-  <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-shade-plugin</artifactId>
-    <version>2.0</version>
-    <executions>
-      <execution>
-        <phase>package</phase>
-        <goals>
-          <goal>shade</goal>
-        </goals>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
         <configuration>
-          <shadedArtifactAttached>true</shadedArtifactAttached>
-          <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
-      <artifactSet>
-            <excludes>
-              <exclude>storm:storm</exclude>
-              <exclude>jmock:*</exclude>
-            </excludes>
-          </artifactSet>
+          <source>1.7</source>
+          <target>1.7</target>
         </configuration>
-      </execution>
-    </executions>
-  </plugin>
-            <plugin>
-                <groupId>com.github.igor-petruk.protobuf</groupId>
-                <artifactId>protobuf-maven-plugin</artifactId>
-                <version>0.5.1</version>
-                <configuration>
-                    <protocCommand>/usr/local/bin/protoc</protocCommand>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2.1</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>com.mapr.maprspouttest.TestTopology</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <id>assemble-all</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.igor-petruk.protobuf</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>0.5.1</version>
+        <configuration>
+          <protocCommand>/usr/local/bin/protoc</protocCommand>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
   <artifactId>mapr-storm-demo</artifactId>
