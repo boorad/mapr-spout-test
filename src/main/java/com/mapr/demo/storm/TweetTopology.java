@@ -3,7 +3,6 @@ package com.mapr.demo.storm;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -18,12 +17,8 @@ import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
-import com.google.protobuf.ByteString;
 import com.mapr.ProtoSpout;
-import com.mapr.ProtoSpout.TupleParser;
 import com.mapr.TailSpout;
 
 public class TweetTopology {
@@ -73,19 +68,7 @@ public class TweetTopology {
 
 
         // init the MapR Tail Spout
-        TupleParser tp = new ProtoSpout.TupleParser() {
-            Splitter onSpace = Splitter.on(" ");
-
-            @Override
-            public List<Object> parse(ByteString buffer) {
-                return Lists.<Object>newArrayList(onSpace.split(buffer.toStringUtf8()));
-            }
-
-            @Override
-            public Fields getOutputFields() {
-                return new Fields("content");
-            }
-        };
+        BlobTupleParser tp = new BlobTupleParser();
         File statusFile = new File(baseDir + "/status");
         File inDir = new File(baseDir);
         Pattern inPattern = Pattern.compile(FILE_PATTERN);
