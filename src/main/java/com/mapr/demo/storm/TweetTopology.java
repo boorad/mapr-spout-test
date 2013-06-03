@@ -3,7 +3,6 @@ package com.mapr.demo.storm;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -72,6 +71,7 @@ public class TweetTopology {
         int top_n = Integer.parseInt(props.getProperty("top.n", DEFAULT_TOP_N));
         log.debug(props.toString());
 
+
         // init the MapR Tail Spout
         TupleParser tp = new ProtoSpout.TupleParser() {
             Splitter onSpace = Splitter.on(" ");
@@ -82,11 +82,8 @@ public class TweetTopology {
             }
 
             @Override
-            public List<String> getOutputFields() {
-                //throw new UnsupportedOperationException("Default operation");
-                ArrayList<String> ret = new ArrayList<String>();
-                ret.add("content");
-                return ret;
+            public Fields getOutputFields() {
+                return new Fields("content");
             }
         };
         File statusFile = new File(baseDir + "/status");
