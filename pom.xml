@@ -59,7 +59,7 @@
       <groupId>storm</groupId>
       <artifactId>storm</artifactId>
       <version>0.8.2</version>
-<!--      <scope>provided</scope> -->
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.googlecode.protobuf-rpc-pro</groupId>

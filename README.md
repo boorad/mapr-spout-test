@@ -14,7 +14,19 @@ Install maven, git and java:
     sudo apt-get -y install git
     sudo apt-get -y install protobuf-compiler
 
-Use 
+Symlink protoc
+
+    sudo ln -s /usr/bin/protoc /usr/local/bin/protoc
+
+Install mahout math package
+
+    git clone git://github.com/apache/mahout.git
+    cd mahout
+    mvn -q -DskipTests install
+
+
+
+Use
 
     sudo update-alternatives --config java
 
@@ -24,12 +36,12 @@ to select java 7.  If you want to set it without interaction, try:
 
 #Start zookeeper
 
-The easiest way to get ZK running on many systems like ubuntu is to simply install the zookeeperd 
+The easiest way to get ZK running on many systems like ubuntu is to simply install the zookeeperd
 package and start the service.
 
     sudo apt-get -y install zookeeperd
 
-After you do this, zookeeper should be running on the standard port of 2181.  Zookeeper is 
+After you do this, zookeeper should be running on the standard port of 2181.  Zookeeper is
 not needed for the SimpleCatcher used in the demo so you probably can just skip this step.
 
 #Download source and compile
@@ -40,7 +52,7 @@ First compile and install mapr-spout on the demo branch:
     cd mapr-spout
     mvn install -DskipTests
 
-You can run the tests if you like.  They should take about a minute to run and should complete successfully.  
+You can run the tests if you like.  They should take about a minute to run and should complete successfully.
 Note that there are some scaring looking log outputs along the way as various failure modes are tested.
 
 Note also that the first time you compile mapr-spout all kinds of dependencies will be downloaded.  This should
