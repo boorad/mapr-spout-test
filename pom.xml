@@ -21,7 +21,7 @@
     <dependency>
       <groupId>mapr-storm</groupId>
       <artifactId>mapr-storm</artifactId>
-      <version>0.5</version>
+      <version>0.6</version>
     </dependency>
     <dependency>
       <groupId>org.twitter4j</groupId>
@@ -59,7 +59,7 @@
       <groupId>storm</groupId>
       <artifactId>storm</artifactId>
       <version>0.8.2</version>
-      <scope>provided</scope>
+<!--      <scope>provided</scope> -->
     </dependency>
     <dependency>
       <groupId>com.googlecode.protobuf-rpc-pro</groupId>

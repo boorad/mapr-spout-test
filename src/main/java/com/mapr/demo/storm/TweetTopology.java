@@ -3,6 +3,7 @@ package com.mapr.demo.storm;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -82,13 +83,20 @@ public class TweetTopology {
 
             @Override
             public List<String> getOutputFields() {
-                throw new UnsupportedOperationException("Default operation");
+                //throw new UnsupportedOperationException("Default operation");
+                ArrayList<String> ret = new ArrayList<String>();
+                ret.add("content");
+                return ret;
             }
         };
         File statusFile = new File(baseDir + "/status");
         File inDir = new File(baseDir);
         Pattern inPattern = Pattern.compile(FILE_PATTERN);
         TailSpout spout = new ProtoSpout(tp, statusFile, inDir, inPattern);
+
+        log.debug("Status file: " + statusFile);
+        log.debug("inDir      : " + inDir);
+        log.debug("inPattern  : " + inPattern);
 
         // TODO this should be set to true, but somebody isn't acking tuples correctly and that causes hangs
         spout.setReliableMode(false);

@@ -5,7 +5,7 @@ BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 exec 2>&1
 java -cp ${CONF_DIR}:${JAR} com.mapr.franz.server.Server \
-  ${SERVER_DIR} ${DEMO_HOST} 8080 ${ZK_HOST}:${ZK_PORT} \
+  ${SERVER_DIR} ${DEMO_HOST} ${DEMO_PORT} ${ZK_HOST}:${ZK_PORT} \
   >> ${LOG_DIR}/server.log &
 
 echo $! > ${RUN_DIR}/server.pid
