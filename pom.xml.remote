@@ -21,7 +21,7 @@
     <dependency>
       <groupId>mapr-storm</groupId>
       <artifactId>mapr-storm</artifactId>
-      <version>0.8</version>
+      <version>0.9-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.twitter4j</groupId>
