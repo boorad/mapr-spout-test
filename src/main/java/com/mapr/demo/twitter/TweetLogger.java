@@ -39,7 +39,7 @@ public class TweetLogger {
     static String queryTerm = "unknown.query";
     static File queryFile;
     static String host = "localhost";
-    static int port = 8080;
+    static int port = 5900;
     static TweetStream ts;
 
     /**

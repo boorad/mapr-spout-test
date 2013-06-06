@@ -121,7 +121,7 @@ public class TweetTopology {
             LocalCluster cluster = new LocalCluster();
             cluster.submitTopology(TOPOLOGY_NAME,
                     conf, topologyBuilder.createTopology());
-            Thread.sleep(1000*60*5);
+            Thread.sleep(1000*60*60*5); // 5 hrs?  let's stop using Local mkay?
             cluster.shutdown();
         }
     }
