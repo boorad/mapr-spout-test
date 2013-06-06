@@ -43,7 +43,10 @@ public class TokenizerBolt extends BaseRichBolt {
             String tweet = tuple.getString(0);
             List<String> tokens = twokenizer.twokenize(tweet);
             for (String token : tokens) {
-                collector.emit(tuple, new Values(token));
+                // TODO: not sure why these tests are necessary... twokenize?
+                if( !token.equalsIgnoreCase("@null") && !token.equalsIgnoreCase("null") ) {
+                    collector.emit(tuple, new Values(token));
+                }
             }
         }
         collector.ack(tuple);
