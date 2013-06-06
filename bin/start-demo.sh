@@ -11,8 +11,7 @@ BIN_DIR="$( cd "$( dirname "$0" )" && pwd )"
  cd ${BIN_DIR}
 
 # zap old data
-rm ${SERVER_DIR}/tweets
-touch ${SERVER_DIR}/tweets
+rm ${SERVER_DIR}/tweets/*
 
 # run Server
 ./server
