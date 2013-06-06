@@ -21,7 +21,8 @@ public class BlobTupleParser extends TupleParser implements Serializable {
 
     @Override
     public Fields getOutputFields() {
-        return new Fields("topic", "content");
+//        throw  new UnsupportedOperationException("Default operation");
+        return new Fields("msg");
     }
 
 }

@@ -23,7 +23,8 @@ import com.mapr.TailSpout;
 
 public class TweetTopology {
 
-    private static final String FILE_PATTERN = "tweets";
+    private static final String TOPOLOGY_NAME = "mapr-storm-demo";
+    private static final String FILE_PATTERN = ".*";
     private static final String DEFAULT_TOP_N = "150";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-storm-demo";
     private static String baseDir = "";
@@ -113,13 +114,15 @@ public class TweetTopology {
         if (remote) {
             log.info("Sleeping 1 seconds before submitting topology");
             Thread.sleep(1000);
-            StormSubmitter.submitTopology("mapr-storm-demo Tweet Topology",
+            StormSubmitter.submitTopology(TOPOLOGY_NAME,
                     conf, topologyBuilder.createTopology());
         } else {
             log.info("Submitting topology");
             LocalCluster cluster = new LocalCluster();
-            cluster.submitTopology("mapr-storm-demo Local Tweet Topology",
+            cluster.submitTopology(TOPOLOGY_NAME,
                     conf, topologyBuilder.createTopology());
+            Thread.sleep(1000*60*5);
+            cluster.shutdown();
         }
     }
 }

@@ -45,6 +45,7 @@ public class TweetBolt extends BaseRichBolt {
         Tweet.TweetMsg t;
 
         try {
+            log.debug("tuple size: " + tuple.size());
             // deserialize tweet
             byte[] msg = tuple.getBinary(0);
             t = Tweet.TweetMsg.parseFrom( msg );
