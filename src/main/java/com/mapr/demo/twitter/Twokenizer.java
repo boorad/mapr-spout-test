@@ -46,6 +46,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.primitives.Ints;
+
 public class Twokenizer implements Serializable {
 
     private static final long serialVersionUID = 5448739505637845004L;
@@ -138,6 +140,11 @@ public class Twokenizer implements Serializable {
    public boolean stopWord(String input) {
        Matcher matcher = StopWords.matcher(input);
        return matcher.matches();
+   }
+
+   public boolean number(String input) {
+       Integer oint = Ints.tryParse(input);
+       return (oint != null);
    }
 
 /*
@@ -245,6 +252,7 @@ public class Twokenizer implements Serializable {
                    && !token.matches(punctSeq)   // no punctuation
                    && !token.matches(entity)     // no entities
                    && !stopWord(token)           // no stop words
+                   && !number(token)             // no numbers
                    && token.length() > 1
                    ) {
                finalTokens.add(token);

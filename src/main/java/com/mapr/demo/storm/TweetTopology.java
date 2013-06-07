@@ -24,7 +24,7 @@ import com.mapr.TailSpout;
 public class TweetTopology {
 
     private static final String TOPOLOGY_NAME = "mapr-storm-demo";
-    private static final String FILE_PATTERN = ".*";
+    private static final String FILE_PATTERN = "0.*";
     private static final String DEFAULT_TOP_N = "150";
     private static final String DEFAULT_BASE_DIR = "/tmp/mapr-storm-demo";
     private static String baseDir = "";
