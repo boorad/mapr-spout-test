@@ -73,7 +73,7 @@ public class TweetTopology {
         File statusFile = new File(baseDir + "/status");
         File inDir = new File(baseDir);
         Pattern inPattern = Pattern.compile(FILE_PATTERN);
-        TailSpout spout = new ProtoSpout(tp, statusFile, inDir, inPattern);
+        ProtoSpout spout = new ProtoSpout(tp, statusFile, inDir, inPattern);
 
         log.debug("Status file: " + statusFile);
         log.debug("inDir      : " + inDir);
