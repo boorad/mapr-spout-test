@@ -81,7 +81,7 @@ public class RollingCountBolt extends BaseRichBolt {
         } else if( TupleHelpers.isNewQueryTuple(tuple) ) {
             log.info("new query tuple");
             resetCounter();
-            collector.emit(tuple, new Values(TupleHelpers.NEW_QUERY_TOKEN));
+            collector.emit(tuple, new Values(TupleHelpers.NEW_QUERY_TOKEN, null, null, null));
             collector.ack(tuple);
         } else {
             Object key = tuple.getValue(0);
