@@ -62,6 +62,7 @@ public class TweetBolt extends BaseRichBolt {
             if( !qt.equals(this.queryTerm) ) {
                 log.info("query changed to '" + qt + "'");
                 this.queryTerm = qt;
+                flush(this.queryTerm);
                 // send newquery tuple to zero out counts in other bolts
                 collector.emit("tweets", tuple,
                         new Values(TupleHelpers.NEW_QUERY_TOKEN));

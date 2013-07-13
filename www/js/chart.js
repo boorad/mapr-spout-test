@@ -240,7 +240,7 @@ g.Chart = function(){
         setQuery : function(q) {
             var that = this;
             that.query = q;
-            $("#query_input").val(q);
+            //$("#query_input").val(q);
             $("#words .query").html(q);
         },
 
@@ -320,6 +320,7 @@ g.Chart = function(){
 
         stop_and_start : function(chart) {
             chart.force.stop();
+            chart.getQueryData();
             chart.getWordData(function() {
                 chart.render();
                 chart.force
