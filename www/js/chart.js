@@ -153,12 +153,14 @@ g.Chart = function(){
 
             // new query 'go' button clicked
             $("#new_query").click(function(e) {
-                var q = $("#query_input").val();
-                that.updateQuery(q);
-                that.setQuery(q);
-                that.stop_and_start(that);
-                g.u.pause();
-                g.u.loop();
+                that.go_new_query();
+            });
+
+            // new query 'enter' pressed
+            $("#query_input").keydown(function (e){
+                if(e.keyCode == 13){
+                    that.go_new_query();
+                }
             });
 
             // up and down buttons for hiding top N words
@@ -174,6 +176,17 @@ g.Chart = function(){
                 var diff = parseInt($(this).val()) - $(this).data("old");
                 that.changeHideTop(diff, false);
             });
+        },
+
+        go_new_query : function() {
+            var that = this;
+            var q = $("#query_input").val();
+            that.updateQuery(q);
+            that.setQuery(q);
+            $(".settings .dropdown.open .dropdown-toggle").dropdown("toggle");
+            that.stop_and_start(that);
+            g.u.pause();
+            g.u.loop();
         },
 
         changeHideTop : function(incr, update) {
@@ -240,7 +253,6 @@ g.Chart = function(){
         setQuery : function(q) {
             var that = this;
             that.query = q;
-            //$("#query_input").val(q);
             $("#words .query").html(q);
         },
 
